@@ -1,6 +1,6 @@
 export const Games = [
     {
-    id: '1', name: 'blood island', category:'action & strategy', demand:'popular',rating: '5.0',image: require('@/assets/gameicons/cod.jpg'),description: 'A game meaned not only for the small but also for all those who have passion in strategy and traps'
+    id: '1', name: 'blood island', category:'action & strategy', demand:'popular',rating: '5.0',image: require('@/assets/gameicons/fall.jpeg'),description: 'A game meaned not only for the small but also for all those who have passion in strategy and traps'
     },
     {
     id: '2', name: 'tropical race', category:'racing', demand:'popular',rating: '5.0',image: require('@/assets/gameicons/race.jpeg'),description: 'Dive into the immense thrive and struggle on the racing court, rise up to fame'

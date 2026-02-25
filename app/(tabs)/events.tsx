@@ -1,8 +1,8 @@
+import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  Dimensions,
   Image,
   ImageBackground,
   ScrollView,
@@ -10,14 +10,11 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width, height } = Dimensions.get("window");
-
-// Sample tournament data
 const liveTournaments = [
   {
     id: 1,
@@ -71,7 +68,6 @@ const liveTournaments = [
   },
 ];
 
-// Sample match history data
 const matchHistory = [
   {
     id: 1,
@@ -120,7 +116,7 @@ const matchHistory = [
   },
 ];
 
-export default function events() {
+export default function Events() {
   return (
     <ImageBackground
       source={require("@/assets/images/bg3.jpg")}
@@ -139,7 +135,6 @@ export default function events() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Header */}
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Player stats</Text>
               <Button style={styles.leaderboardBtn}>
@@ -147,7 +142,6 @@ export default function events() {
               </Button>
             </View>
 
-            {/* Player Stats Section - Your Original Design */}
             <View style={styles.playerStatsSection}>
               <View style={styles.playerImageContainer}>
                 <Image
@@ -194,7 +188,6 @@ export default function events() {
               </View>
             </View>
 
-            {/* Live Tournaments Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Live Tournaments</Text>
               <ScrollView
@@ -237,13 +230,21 @@ export default function events() {
                         </Text>
                         <View style={styles.tournamentDetails}>
                           <View style={styles.detailItem}>
-                            <Ionicons name="trophy" size={14} color="#FFD700" />
+                            <Ionicons
+                              name="trophy"
+                              size={fontScale(14)}
+                              color="#FFD700"
+                            />
                             <Text style={styles.detailText}>
                               {tournament.prize}
                             </Text>
                           </View>
                           <View style={styles.detailItem}>
-                            <Ionicons name="people" size={14} color="#4fc3f7" />
+                            <Ionicons
+                              name="people"
+                              size={fontScale(14)}
+                              color="#4fc3f7"
+                            />
                             <Text style={styles.detailText}>
                               {tournament.players}
                             </Text>
@@ -262,7 +263,6 @@ export default function events() {
               </ScrollView>
             </View>
 
-            {/* Players Match History Section */}
             <View style={styles.section}>
               <View style={styles.historyHeader}>
                 <Text style={styles.sectionTitle}>Match History</Text>
@@ -324,8 +324,7 @@ export default function events() {
               ))}
             </View>
 
-            {/* Bottom padding */}
-            <View style={{ height: 30 }} />
+            <View style={{ height: hp(4) }} />
           </ScrollView>
         </SafeAreaView>
       </View>
@@ -347,108 +346,107 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: wp(4.5),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: hp(2.5),
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: fontScale(20),
     color: "#ffffff",
     fontWeight: "600",
   },
   leaderboardBtn: {
     backgroundColor: "rgb(76, 63, 191)",
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.6),
   },
   leaderboardText: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: fontScale(15),
   },
-  // Player Stats Section
   playerStatsSection: {
-    width: width,
-    height: 380,
+    width: "100%",
+    height: hp(48),
     position: "relative",
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 45,
+    marginBottom: hp(5.5),
   },
   playerImageContainer: {
     position: "relative",
   },
   coverImage: {
-    width: 300,
-    height: 340,
+    width: wp(75),
+    height: hp(42),
     position: "relative",
-    marginLeft: -80,
+    marginLeft: -wp(20),
     shadowColor: "rgb(153, 0, 255)",
     shadowOpacity: 1,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: hp(0.5) },
   },
   characterImage: {
-    width: 260,
-    height: 260,
+    width: wp(65),
+    height: hp(32),
     position: "absolute",
-    top: 150,
-    right: 10,
+    top: hp(18),
+    right: wp(2.5),
   },
   playerInfo: {
-    marginTop: -210,
-    marginLeft: -60,
+    marginTop: -hp(26),
+    marginLeft: -wp(15),
   },
   playerRank: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: fontScale(15),
     fontWeight: "500",
   },
   playerNameRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 23,
+    gap: wp(5.5),
   },
   playerName: {
     color: "#fff",
-    fontSize: 28,
+    fontSize: fontScale(28),
     fontWeight: "600",
   },
   rankBadge: {
-    width: 35,
-    height: 35,
+    width: wp(8.5),
+    height: wp(8.5),
   },
   playerScore: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: fontScale(20),
     fontWeight: "500",
-    marginLeft: -10,
+    marginLeft: -wp(2.5),
   },
   playerBio: {
     color: "#b2b2b2",
-    fontSize: 14,
+    fontSize: fontScale(14),
     fontWeight: "400",
     flexWrap: "wrap",
-    maxWidth: 230,
-    marginTop: 5,
+    maxWidth: wp(58),
+    marginTop: hp(0.6),
   },
   badgesRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
-    marginTop: 8,
+    gap: wp(0.5),
+    marginTop: hp(1),
   },
   badgeIcon: {
-    width: 35,
-    height: 35,
+    width: wp(8.5),
+    height: wp(8.5),
   },
   winStats: {
-    marginTop: 5,
+    marginTop: hp(0.6),
     color: "#43be81e0",
-    fontSize: 10,
+    fontSize: fontScale(10),
   },
   statsLoss: {
     color: "#c74b4bdd",
@@ -456,54 +454,52 @@ const styles = StyleSheet.create({
   statsDraw: {
     color: "#4b4b4b",
   },
-  // Section Styles
   section: {
-    marginBottom: 40,
+    marginBottom: hp(5),
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: fontScale(22),
     color: "rgb(255, 255, 255)",
     fontWeight: "600",
-    marginBottom: 18,
+    marginBottom: hp(2.2),
   },
-  // Tournament Styles
   tournamentScroll: {
-    gap: 15,
-    paddingRight: 20,
-    paddingBottom: 15,
+    gap: wp(3.5),
+    paddingRight: wp(5),
+    paddingBottom: hp(2),
   },
   tournamentCard: {
-    width: 180,
-    height: 240,
-    borderRadius: 16,
+    width: wp(60),
+    height: hp(30),
+    borderRadius: wp(4),
     overflow: "hidden",
-    marginRight: 15,
+    marginRight: wp(2),
   },
   tournamentImage: {
     flex: 1,
   },
   tournamentImageStyle: {
-    borderRadius: 16,
+    borderRadius: wp(4),
   },
   tournamentGradient: {
     flex: 1,
     justifyContent: "space-between",
-    padding: 12,
+    padding: wp(3),
   },
   tournamentStatusBadge: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
     backgroundColor: "rgba(0, 0, 0, 0.6)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 6,
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(1.5),
+    gap: wp(1.5),
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: wp(2),
+    height: wp(2),
+    borderRadius: wp(1),
   },
   liveDot: {
     backgroundColor: "#4ade80",
@@ -513,65 +509,64 @@ const styles = StyleSheet.create({
   },
   tournamentStatus: {
     color: "#fff",
-    fontSize: 11,
+    fontSize: fontScale(11),
     fontWeight: "600",
   },
   tournamentName: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: "700",
     marginTop: "auto",
   },
   tournamentGame: {
     color: "#a0a0a0",
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: fontScale(12),
+    marginTop: hp(0.25),
   },
   tournamentDetails: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
+    gap: wp(3),
+    marginTop: hp(1),
   },
   detailItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: wp(1),
   },
   detailText: {
     color: "#e0e0e0",
-    fontSize: 12,
+    fontSize: fontScale(12),
     fontWeight: "500",
   },
   tournamentEntry: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    marginTop: 6,
+    gap: wp(1),
+    marginTop: hp(0.75),
   },
   entryLabel: {
     color: "#a0a0a0",
-    fontSize: 11,
+    fontSize: fontScale(11),
   },
   entryFee: {
     color: "#4fc3f7",
-    fontSize: 13,
+    fontSize: fontScale(13),
     fontWeight: "700",
   },
-  // Match History Styles
   historyHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: hp(2.2),
   },
   viewAllButton: {
     backgroundColor: "rgba(78, 78, 78, 0.4)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: hp(2.5),
   },
   viewAllText: {
-    fontSize: 13,
+    fontSize: fontScale(13),
     color: "#eaeaea",
     fontWeight: "500",
   },
@@ -580,19 +575,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "rgba(42, 42, 42, 0.5)",
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 12,
+    borderRadius: wp(4),
+    padding: wp(3.5),
+    marginBottom: hp(1.5),
   },
   matchLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: wp(3),
   },
   avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
     justifyContent: "center",
     alignItems: "center",
   },
@@ -607,29 +602,29 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: fontScale(18),
     fontWeight: "700",
   },
   matchInfo: {
-    gap: 4,
+    gap: hp(0.5),
   },
   opponentName: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: fontScale(15),
     fontWeight: "600",
   },
   matchGame: {
     color: "#a0a0a0",
-    fontSize: 12,
+    fontSize: fontScale(12),
   },
   matchRight: {
     alignItems: "flex-end",
-    gap: 4,
+    gap: hp(0.5),
   },
   resultBadge: {
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(1.5),
   },
   winBadge: {
     backgroundColor: "rgba(74, 222, 128, 0.2)",
@@ -641,7 +636,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(251, 191, 36, 0.2)",
   },
   resultText: {
-    fontSize: 12,
+    fontSize: fontScale(12),
     fontWeight: "700",
   },
   winText: {
@@ -655,11 +650,11 @@ const styles = StyleSheet.create({
   },
   matchScore: {
     color: "#e0e0e0",
-    fontSize: 14,
+    fontSize: fontScale(14),
     fontWeight: "600",
   },
   matchDate: {
     color: "#707070",
-    fontSize: 11,
+    fontSize: fontScale(11),
   },
 });

@@ -1,10 +1,10 @@
 import { Games } from "@/constant/games";
+import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Dimensions,
   ImageBackground,
   ScrollView,
   StatusBar,
@@ -14,12 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-
-const wp = (percentage: number) => (SCREEN_WIDTH / 100) * percentage;
-const hp = (percentage: number) => (SCREEN_HEIGHT / 100) * percentage;
-const fontScale = (size: number) => (SCREEN_WIDTH / 375) * size;
+import { Image } from "expo-image";
 
 export default function Index() {
   const router = useRouter();
@@ -49,19 +44,19 @@ export default function Index() {
   const banners = [
     {
       id: "banner1",
-      image: require("@/assets/images/bg1.jpg"),
+      image: require("@/assets/images/mufa.jpeg"),
       title: "Special Offer",
       subtitle: "Get 100% bonus on first deposit",
     },
     {
       id: "banner2",
-      image: require("@/assets/images/bg2.jpg"),
+      image: require("@/assets/images/modern.jpeg"),
       title: "Weekend Special",
       subtitle: "Double your rewards this weekend",
     },
     {
       id: "banner3",
-      image: require("@/assets/images/bg4.jpg"),
+      image: require("@/assets/images/race.jpeg"),
       title: "New Games",
       subtitle: "Try our latest additions",
     },
@@ -85,7 +80,7 @@ export default function Index() {
   };
 
   const bannerAspectRatio = 16 / 9;
-  const cardAspectRatio = 3 / 4;
+  const cardAspectRatio = 3.2 / 4;
 
   return (
     <ImageBackground
@@ -115,19 +110,22 @@ export default function Index() {
                 <TouchableOpacity onPress={() => router.push("/notifications")}>
                   <Ionicons
                     name="notifications"
-                    size={fontScale(26)}
+                    size={fontScale(22)}
                     color="#fff"
                   />
                   <View style={styles.notificationBadge}>
                     <Text style={styles.notificationText}>1</Text>
                   </View>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.menuButton}>
+                <TouchableOpacity style={{flexDirection:'row',gap:4,alignItems:'center',marginRight:8}}>
                   <Ionicons
-                    name="menu"
-                    size={fontScale(26)}
-                    color="#ffffffda"
+                    name="flame"
+                    size={fontScale(22)}
+                    color="#ff6969da"
                   />
+                  <Text style={{color:'white',fontSize:14,fontWeight:'500'}}>
+                    777
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -137,7 +135,7 @@ export default function Index() {
               contentContainerStyle={styles.scrollContent}
             >
               {/* Quick Info Section */}
-              <View style={styles.quickInfoSection}>
+              {/* <View style={styles.quickInfoSection}>
                 <View style={styles.welcomeContainer}>
                   <Text style={styles.welcomeText}>Hello,</Text>
                   <Text style={styles.userName}>John Doe</Text>
@@ -173,7 +171,7 @@ export default function Index() {
                     <Text style={styles.statLabel}>Points</Text>
                   </View>
                 </View>
-              </View>
+              </View> */}
 
               {/* Spacing */}
               <View style={styles.spacer} />
@@ -182,11 +180,7 @@ export default function Index() {
               <TouchableOpacity style={styles.freeSpinCard} activeOpacity={0.9}>
                 <View style={styles.freeSpinContent}>
                   <View style={styles.freeSpinIconContainer}>
-                    <Ionicons
-                      name="refresh-circle"
-                      size={fontScale(36)}
-                      color="#FFD700"
-                    />
+                    <Image source={require('@/assets/images/spin.png')} style={{width:70,height:70}}/>
                   </View>
                   <View style={styles.freeSpinTextContainer}>
                     <Text style={styles.freeSpinTitle}>
@@ -262,7 +256,14 @@ export default function Index() {
               {/* Bonus Games Section */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Bonus Games</Text>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:5}}>
+                    <Ionicons
+                      name="gift"
+                      size={fontScale(20)}
+                      color="#FFD700"
+                    />
+                    <Text style={styles.sectionTitle}>Bonus Games</Text>
+                  </View>
                   <TouchableOpacity
                     style={styles.viewAllButton}
                     onPress={navigateToAllGames}
@@ -297,6 +298,7 @@ export default function Index() {
                         ]}
                         imageStyle={{ borderRadius: wp(3) }}
                       >
+                        {/*bonus badge */}
                         <View style={styles.bonusBadge}>
                           <Ionicons
                             name="gift"
@@ -373,13 +375,16 @@ export default function Index() {
               {/* All Games Section */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
-                  {selectedCategory === "all"
+                  {/* {selectedCategory === "all"
                     ? "All Games"
-                    : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Games`}
+                    : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Games`} */}
+                All Games
                 </Text>
-
+                <Text style={{color:'white',fontSize:15,fontWeight:'400'}}>
+                  we are proud of all our games, you can take a close look at them
+                </Text>
                 {/* Categories */}
-                <ScrollView
+                {/* <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.categoriesContent}
@@ -404,7 +409,7 @@ export default function Index() {
                       </Text>
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </ScrollView> */}
 
                 {/* Games Grid */}
                 <View style={styles.gamesGrid}>
@@ -486,12 +491,12 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: "#353636", fontSize: fontScale(18), fontWeight: "bold" },
   balanceText: { color: "white", fontSize: fontScale(15), fontWeight: "600" },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: wp(3) },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: wp(6) },
   notificationBadge: {
     position: "absolute",
     top: -hp(0.5),
     right: -wp(1.5),
-    backgroundColor: "rgba(237, 81, 81, 0.96)",
+    backgroundColor: "rgba(252, 66, 66, 0.96)",
     height: hp(1.8),
     width: hp(1.8),
     borderRadius: hp(0.9),
@@ -503,11 +508,11 @@ const styles = StyleSheet.create({
     fontSize: fontScale(9),
     fontWeight: "bold",
   },
-  menuButton: {
-    backgroundColor: "rgb(59, 132, 226)",
-    padding: wp(2),
-    borderRadius: wp(2),
-  },
+  // menuButton: {
+  //   backgroundColor: "rgba(255, 255, 255, 0)",
+  //   padding: wp(2),
+  //   borderRadius: wp(2),
+  // },
 
   // Scroll Content
   scrollContent: { paddingHorizontal: wp(4), paddingBottom: hp(3) },
@@ -652,7 +657,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: hp(0.3),
   },
-  smallGameCard: { width: wp(35), overflow: "hidden", borderRadius: wp(3) },
+  smallGameCard: { width: wp(38), overflow: "hidden", borderRadius: wp(3), height:'100%' },
   smallGameImage: { width: "100%" },
   smallGameTitle: {
     fontSize: fontScale(13),

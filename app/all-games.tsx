@@ -1,25 +1,19 @@
 import { Games } from "@/constant/games";
+import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Dimensions,
-    ImageBackground,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ImageBackground,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-
-const wp = (percentage: number) => (SCREEN_WIDTH / 100) * percentage;
-const hp = (percentage: number) => (SCREEN_HEIGHT / 100) * percentage;
-const fontScale = (size: number) => (SCREEN_WIDTH / 375) * size;
 
 const categories = [
   "all",
@@ -68,7 +62,6 @@ export default function AllGames() {
 
       <View style={styles.overlay}>
         <SafeAreaView style={styles.safeArea}>
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.backButton}
@@ -80,7 +73,6 @@ export default function AllGames() {
             <View style={{ width: wp(10) }} />
           </View>
 
-          {/* Categories */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -108,14 +100,12 @@ export default function AllGames() {
             ))}
           </ScrollView>
 
-          {/* Games Count */}
           <View style={styles.gamesCount}>
             <Text style={styles.gamesCountText}>
               {displayedGames.length} games available
             </Text>
           </View>
 
-          {/* Games Grid */}
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}

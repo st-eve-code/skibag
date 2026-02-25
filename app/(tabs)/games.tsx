@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -69,12 +70,12 @@ export default function GamesTab() {
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
           {/* Featured Banner - Shows selected game image at top */}
           <View style={styles.adBannerContainer}>
-            <ImageBackground
+            <Image
               source={selectedGame.image}
-              resizeMode="cover"
+              // resizeMode="cover"
               style={styles.adBanner}
-              imageStyle={styles.adBannerImage}
-            >
+              // imageStyle={styles.adBannerImage}
+            />
               <LinearGradient
                 colors={[
                   "rgba(116, 116, 116, 0)",
@@ -103,7 +104,7 @@ export default function GamesTab() {
 
                 <TouchableOpacity
                   style={styles.playButton}
-                  onPress={() => navigateToGame(selectedGame.id)}
+                  // onPress={() => navigateToGame(selectedGame.id)} for now this link should take the user directly to the game
                 >
                   <Ionicons
                     name="play"
@@ -113,7 +114,7 @@ export default function GamesTab() {
                   <Text style={styles.playText}>Play Now</Text>
                 </TouchableOpacity>
               </LinearGradient>
-            </ImageBackground>
+            {/* </Image> */}
           </View>
 
           <View style={styles.sectionHeader}>
@@ -126,14 +127,8 @@ export default function GamesTab() {
               {filteredGames.length} games available
             </Text>
           </View>
-
-          {/* Main Content ScrollView */}
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {/* Categories Horizontal Scroll - Under All Games */}
-            <ScrollView
+          {/* Categories Horizontal Scroll - Under All Games */}
+            {/* <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.categoriesScroll}
@@ -158,8 +153,12 @@ export default function GamesTab() {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
-
+            </ScrollView> */}
+          {/* Main Content ScrollView */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
             {/* Games Grid */}
             <View style={styles.gamesGrid}>
               {filteredGames.map((game) => (
@@ -252,6 +251,7 @@ const styles = StyleSheet.create({
   },
   gameInfo: {
     marginBottom: hp(2),
+    marginLeft: wp(2.5)
   },
   gameName: {
     color: "white",
@@ -283,6 +283,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3a7be4fe",
     paddingVertical: hp(1.5),
     paddingHorizontal: wp(8),
+    marginLeft: wp(2),
     borderRadius: hp(4),
     alignSelf: "flex-start",
   },
@@ -308,11 +309,11 @@ const styles = StyleSheet.create({
     paddingBottom: hp(3),
   },
   sectionHeader: {
-    marginBottom: hp(3),
-    paddingHorizontal: wp(4),
+    marginBottom: hp(2),
+    paddingHorizontal: wp(2),
   },
   sectionTitle: {
-    fontSize: fontScale(20),
+    fontSize: fontScale(18),
     color: "white",
     fontWeight: "600",
     marginBottom: hp(0.5),
@@ -325,11 +326,11 @@ const styles = StyleSheet.create({
 
   // Categories Styles
   categoriesScroll: {
-    maxHeight: hp(7),
+    maxHeight: hp(10),
     marginBottom: hp(3),
   },
   categoriesContent: {
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(3),
     gap: wp(2.5),
     alignItems: "center",
   },

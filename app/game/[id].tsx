@@ -1,10 +1,10 @@
 import { Games } from "@/constant/games";
+import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
-  Dimensions,
   ImageBackground,
   ScrollView,
   StatusBar,
@@ -14,12 +14,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-
-const wp = (percentage: number) => (SCREEN_WIDTH / 100) * percentage;
-const hp = (percentage: number) => (SCREEN_HEIGHT / 100) * percentage;
-const fontScale = (size: number) => (SCREEN_WIDTH / 375) * size;
 
 const leaderboard = [
   { rank: 1, name: "ProGamer99", score: 15420 },
@@ -55,7 +49,7 @@ export default function GameDetail() {
 
   return (
     <ImageBackground
-      source={game.image}
+      source={require("@/assets/images/bg3.jpg")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
@@ -65,51 +59,63 @@ export default function GameDetail() {
         translucent
         backgroundColor="transparent"
       />
-
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.shareButton}>
-              <Ionicons name="share-social" size={fontScale(22)} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.overlay}>
+          <SafeAreaView style={styles.safeArea}>
             <View style={styles.heroSection}>
-              <LinearGradient
-                colors={["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.8)"]}
-                style={styles.heroGradient}
+              <ImageBackground
+                source={game.image}
+                resizeMode="cover"
+                style={{ flex: 1, height: hp(35) }}
               >
-                <View style={styles.gameInfo}>
-                  <View style={styles.categoryContainer}>
-                    {game.category.split(" & ").map((cat, index) => (
-                      <View key={index} style={styles.categoryBadge}>
-                        <Text style={styles.categoryText}>
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                  <Text style={styles.gameName}>{game.name}</Text>
-                  <View style={styles.ratingContainer}>
+                <View style={styles.header}>
+                  <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                  >
                     <Ionicons
-                      name="star"
-                      size={fontScale(18)}
-                      color="#FFD700"
+                      name="arrow-back"
+                      size={fontScale(24)}
+                      color="#fff"
                     />
-                    <Text style={styles.ratingText}>{game.rating}</Text>
-                  </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.shareButton}>
+                    <Ionicons
+                      name="share-social"
+                      size={fontScale(22)}
+                      color="#fff"
+                    />
+                  </TouchableOpacity>
                 </View>
-              </LinearGradient>
+                <LinearGradient
+                  colors={["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.8)"]}
+                  style={styles.heroGradient}
+                >
+                  <View style={styles.gameInfo}>
+                    <View style={styles.categoryContainer}>
+                      {game.category.split(" & ").map((cat, index) => (
+                        <View key={index} style={styles.categoryBadge}>
+                          <Text style={styles.categoryText}>
+                            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                    <Text style={styles.gameName}>{game.name}</Text>
+                    <View style={styles.ratingContainer}>
+                      <Ionicons
+                        name="star"
+                        size={fontScale(18)}
+                        color="#FFD700"
+                      />
+                      <Text style={styles.ratingText}>{game.rating}</Text>
+                    </View>
+                  </View>
+                </LinearGradient>
+              </ImageBackground>
             </View>
 
             <View style={styles.playSection}>
@@ -194,9 +200,9 @@ export default function GameDetail() {
             </View>
 
             <View style={{ height: hp(5) }} />
-          </ScrollView>
-        </SafeAreaView>
-      </View>
+          </SafeAreaView>
+        </View>
+      </ScrollView>
     </ImageBackground>
   );
 }
@@ -209,7 +215,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(12, 12, 12, 0.85)",
+    backgroundColor: "rgba(12, 12, 12, 0)",
   },
   safeArea: {
     flex: 1,
@@ -219,7 +225,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
+    paddingVertical: hp(1.5),
   },
   backButton: {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -242,6 +248,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     padding: wp(4),
+    height: "100%",
   },
   gameInfo: {
     gap: hp(1),

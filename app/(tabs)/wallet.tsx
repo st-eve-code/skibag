@@ -1,139 +1,249 @@
-import { View, Text, ImageBackground, StyleSheet, StatusBar, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Ionicons } from '@expo/vector-icons'
+import { fontScale, hp, wp } from "@/lib/responsive";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import React, { useState } from "react";
+import {
+  Image,
+  ImageBackground,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function wallet() {
+export default function Wallet() {
   const [balance] = useState(5000);
   const [bonusBalance] = useState(1200);
-  const [userName] = useState('John'); // Replace with actual user name from auth
+  const [userName] = useState("John");
+  const [showModal, setShowModal] = useState(false);
+  const [choice, setChoice] = useState("");
+  const [amount, setAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
 
-  // Transaction history
   const transactions = [
-    { id: 1, type: 'win', game: 'Chess Battle', amount: 2500, date: '2 hours ago', status: 'completed' },
-    { id: 2, type: 'deposit', game: 'MTN Mobile Money', amount: 5000, date: '5 hours ago', status: 'completed' },
-    { id: 3, type: 'loss', game: 'Ludo Match', amount: -1000, date: '1 day ago', status: 'completed' },
-    { id: 4, type: 'win', game: 'Puzzle Challenge', amount: 500, date: '1 day ago', status: 'completed' },
-    { id: 5, type: 'withdraw', game: 'Orange Money', amount: -3000, date: '2 days ago', status: 'pending' },
-    { id: 6, type: 'bonus', game: 'Referral Bonus', amount: 1200, date: '3 days ago', status: 'completed' },
+    {
+      id: 1,
+      type: "win",
+      game: "Chess Battle",
+      amount: 2500,
+      date: "2 hours ago",
+      status: "completed",
+    },
+    {
+      id: 2,
+      type: "deposit",
+      game: "MTN Mobile Money",
+      amount: 5000,
+      date: "5 hours ago",
+      status: "completed",
+    },
+    {
+      id: 3,
+      type: "loss",
+      game: "Ludo Match",
+      amount: -1000,
+      date: "1 day ago",
+      status: "completed",
+    },
+    {
+      id: 4,
+      type: "win",
+      game: "Puzzle Challenge",
+      amount: 500,
+      date: "1 day ago",
+      status: "completed",
+    },
+    {
+      id: 5,
+      type: "withdraw",
+      game: "Orange Money",
+      amount: -3000,
+      date: "2 days ago",
+      status: "pending",
+    },
+    {
+      id: 6,
+      type: "bonus",
+      game: "Referral Bonus",
+      amount: 1200,
+      date: "3 days ago",
+      status: "completed",
+    },
   ];
 
-  // Quick actions
+  const handleModal = (type: string) => {
+    setShowModal(true);
+    setChoice(type);
+    setAmount("");
+    setRecipient("");
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setChoice("");
+    setAmount("");
+    setRecipient("");
+  };
+
+  const handleSubmit = () => {
+    console.log(`${choice} - Amount: ${amount}, Recipient: ${recipient}`);
+    closeModal();
+  };
+
   const quickActions = [
-    { id: 1, title: 'Deposit', icon: 'add-circle', color: '#3a6fe9' },
-    { id: 2, title: 'Withdraw', icon: 'cash', color: '#22c55e' },
-    { id: 3, title: 'History', icon: 'time', color: '#f59e0b' },
-    { id: 4, title: 'Transfer', icon: 'swap-horizontal', color: '#8b5cf6' },
+    { id: 1, title: "Deposit", icon: "add-circle", color: "#3a6fe9" },
+    { id: 2, title: "Withdraw", icon: "cash", color: "#22c55e" },
+    { id: 3, title: "History", icon: "time", color: "#f59e0b" },
+    { id: 4, title: "Transfer", icon: "swap-horizontal", color: "#8b5cf6" },
   ];
 
-  const getTransactionIcon = (type) => {
-    switch(type) {
-      case 'win': return 'trophy';
-      case 'loss': return 'close-circle';
-      case 'deposit': return 'arrow-down-circle';
-      case 'withdraw': return 'arrow-up-circle';
-      case 'bonus': return 'gift';
-      default: return 'cash';
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case "win":
+        return "trophy";
+      case "loss":
+        return "close-circle";
+      case "deposit":
+        return "arrow-down-circle";
+      case "withdraw":
+        return "arrow-up-circle";
+      case "bonus":
+        return "gift";
+      default:
+        return "cash";
     }
   };
 
-  const getTransactionColor = (type) => {
-    switch(type) {
-      case 'win': return '#22c55e';
-      case 'loss': return '#ef4444';
-      case 'deposit': return '#3a6fe9';
-      case 'withdraw': return '#f59e0b';
-      case 'bonus': return '#8b5cf6';
-      default: return '#6b7280';
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case "win":
+        return "#22c55e";
+      case "loss":
+        return "#ef4444";
+      case "deposit":
+        return "#3a6fe9";
+      case "withdraw":
+        return "#f59e0b";
+      case "bonus":
+        return "#8b5cf6";
+      default:
+        return "#6b7280";
     }
   };
 
   return (
-    <ImageBackground 
-      source={require('@/assets/images/bg3.jpg')}
+    <ImageBackground
+      source={require("@/assets/images/bg3.jpg")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
+
       <View style={styles.overlay}>
-        <SafeAreaView style={styles.container} edges={['top']}>
-          
-          {/* Header - Now with greeting */}
+        <SafeAreaView style={styles.container} edges={["top"]}>
           <View style={styles.header}>
             <View>
               <Text style={styles.greetingText}>Hello there, {userName} !</Text>
             </View>
-            <TouchableOpacity style={styles.notificationButton}>
-              <Ionicons name="notifications" size={24} color="#fff" />
+            <TouchableOpacity
+              style={styles.notificationButton}
+              onPress={() => router.push("/notifications")}
+            >
+              <Ionicons
+                name="notifications"
+                size={fontScale(24)}
+                color="#fff"
+              />
               <View style={styles.notificationBadge}>
                 <Text style={styles.notificationText}>3</Text>
               </View>
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            
-            {/* Balance Card - Now with Wallet title inside */}
             <View style={styles.balanceCardContainer}>
               <LinearGradient
-                colors={['#3a6fe9', '#5b8ef7', '#3a6fe9']}
+                colors={["#3a6fe9", "#5b8ef7", "#3a6fe9"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.balanceCard}
               >
-                {/* Decorative circles */}
                 <View style={styles.circleDecor1} />
                 <View style={styles.circleDecor2} />
-                
+
                 <View style={styles.balanceContent}>
-                  {/* Header with wallet icon and eye button */}
                   <View style={styles.balanceHeader}>
                     <View style={styles.walletTitleContainer}>
-                      <Ionicons name="wallet" size={28} color="#fff" />
+                      <Ionicons
+                        name="wallet"
+                        size={fontScale(28)}
+                        color="#fff"
+                      />
                       <Text style={styles.walletTitle}>My Wallet</Text>
                     </View>
                     <TouchableOpacity style={styles.eyeButton}>
-                      <Ionicons name="eye" size={20} color="#fff" />
+                      <Ionicons name="eye" size={fontScale(20)} color="#fff" />
                     </TouchableOpacity>
                   </View>
-                  
-                  {/* Balance label */}
+
                   <Text style={styles.balanceLabel}>Available Balance</Text>
-                  
-                  {/* Balance amount */}
+
                   <View style={styles.balanceAmount}>
-                    <Text style={styles.balanceNumber}>{balance.toLocaleString()}</Text>
+                    <Text style={styles.balanceNumber}>
+                      {balance.toLocaleString()}
+                    </Text>
                     <Text style={styles.currencySymbol}>XAF</Text>
                   </View>
-                  
-                  {/* Bonus chip */}
+
                   <View style={styles.bonusRow}>
                     <View style={styles.bonusChip}>
-                      <Ionicons name="gift" size={14} color="#fbbf24" />
-                      <Text style={styles.bonusText}>Bonus: {bonusBalance} XAF</Text>
+                      <Ionicons
+                        name="gift"
+                        size={fontScale(14)}
+                        color="#fbbf24"
+                      />
+                      <Text style={styles.bonusText}>
+                        Bonus: {bonusBalance} XAF
+                      </Text>
                     </View>
                   </View>
                 </View>
               </LinearGradient>
             </View>
 
-            {/* Quick Actions */}
             <View style={styles.quickActionsContainer}>
               <Text style={styles.sectionTitle}>Quick Actions</Text>
               <View style={styles.quickActionsGrid}>
                 {quickActions.map((action) => (
-                  <TouchableOpacity 
-                    key={action.id} 
+                  <TouchableOpacity
+                    key={action.id}
                     style={styles.actionCard}
                     activeOpacity={0.7}
+                    onPress={() => handleModal(action.title)}
                   >
-                    <View style={[styles.actionIcon, { backgroundColor: action.color + '20' }]}>
-                      <Ionicons name={action.icon} size={24} color={action.color} />
+                    <View
+                      style={[
+                        styles.actionIcon,
+                        { backgroundColor: action.color + "20" },
+                      ]}
+                    >
+                      <Ionicons
+                        name={action.icon as any}
+                        size={fontScale(24)}
+                        color={action.color}
+                      />
                     </View>
                     <Text style={styles.actionTitle}>{action.title}</Text>
                   </TouchableOpacity>
@@ -141,7 +251,183 @@ export default function wallet() {
               </View>
             </View>
 
-            {/* Transaction History */}
+            {showModal && (
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <View style={styles.modalTitleRow}>
+                      <Ionicons
+                        name={
+                          choice === "Deposit"
+                            ? "add-circle"
+                            : choice === "Withdraw"
+                              ? "cash"
+                              : choice === "History"
+                                ? "time"
+                                : "swap-horizontal"
+                        }
+                        size={fontScale(28)}
+                        color={
+                          choice === "Deposit"
+                            ? "#3a6fe9"
+                            : choice === "Withdraw"
+                              ? "#22c55e"
+                              : choice === "History"
+                                ? "#f59e0b"
+                                : "#8b5cf6"
+                        }
+                      />
+                      <Text style={styles.modalTitle}>{choice}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={closeModal}
+                      style={styles.closeButton}
+                    >
+                      <Ionicons
+                        name="close"
+                        size={fontScale(24)}
+                        color="#fff"
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <Image
+                    source={require("@/assets/badges/child.png")}
+                    style={styles.modalImage}
+                  />
+
+                  {choice === "Deposit" && (
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.inputLabel}>Enter Amount (XAF)</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="0"
+                        placeholderTextColor="#666"
+                        keyboardType="numeric"
+                        value={amount}
+                        onChangeText={setAmount}
+                      />
+                      <TouchableOpacity
+                        style={styles.submitButton}
+                        onPress={handleSubmit}
+                      >
+                        <Text style={styles.submitButtonText}>Deposit Now</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {choice === "Withdraw" && (
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.inputLabel}>
+                        Enter Amount to Withdraw (XAF)
+                      </Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="0"
+                        placeholderTextColor="#666"
+                        keyboardType="numeric"
+                        value={amount}
+                        onChangeText={setAmount}
+                      />
+                      <TouchableOpacity
+                        style={[
+                          styles.submitButton,
+                          { backgroundColor: "#22c55e" },
+                        ]}
+                        onPress={handleSubmit}
+                      >
+                        <Text style={styles.submitButtonText}>Withdraw</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {choice === "History" && (
+                    <View style={styles.historyContainer}>
+                      <ScrollView style={styles.historyScroll}>
+                        {transactions.map((transaction) => (
+                          <View key={transaction.id} style={styles.historyItem}>
+                            <View style={styles.historyLeft}>
+                              <View
+                                style={[
+                                  styles.historyIcon,
+                                  {
+                                    backgroundColor:
+                                      getTransactionColor(transaction.type) +
+                                      "20",
+                                  },
+                                ]}
+                              >
+                                <Ionicons
+                                  name={
+                                    getTransactionIcon(transaction.type) as any
+                                  }
+                                  size={fontScale(16)}
+                                  color={getTransactionColor(transaction.type)}
+                                />
+                              </View>
+                              <View>
+                                <Text style={styles.historyGame}>
+                                  {transaction.game}
+                                </Text>
+                                <Text style={styles.historyDate}>
+                                  {transaction.date}
+                                </Text>
+                              </View>
+                            </View>
+                            <Text
+                              style={[
+                                styles.historyAmount,
+                                {
+                                  color:
+                                    transaction.amount > 0
+                                      ? "#22c55e"
+                                      : "#ef4444",
+                                },
+                              ]}
+                            >
+                              {transaction.amount > 0 ? "+" : ""}
+                              {transaction.amount} XAF
+                            </Text>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+
+                  {choice === "Transfer" && (
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.inputLabel}>Recipient Username</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter username"
+                        placeholderTextColor="#666"
+                        value={recipient}
+                        onChangeText={setRecipient}
+                      />
+                      <Text style={styles.inputLabel}>Enter Amount (XAF)</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="0"
+                        placeholderTextColor="#666"
+                        keyboardType="numeric"
+                        value={amount}
+                        onChangeText={setAmount}
+                      />
+                      <TouchableOpacity
+                        style={[
+                          styles.submitButton,
+                          { backgroundColor: "#8b5cf6" },
+                        ]}
+                        onPress={handleSubmit}
+                      >
+                        <Text style={styles.submitButtonText}>Transfer</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
             <View style={styles.transactionsContainer}>
               <View style={styles.transactionsHeader}>
                 <Text style={styles.sectionTitle}>Recent Transactions</Text>
@@ -151,43 +437,71 @@ export default function wallet() {
               </View>
 
               {transactions.map((transaction) => (
-                <TouchableOpacity 
-                  key={transaction.id} 
+                <TouchableOpacity
+                  key={transaction.id}
                   style={styles.transactionCard}
                   activeOpacity={0.7}
                 >
                   <View style={styles.transactionLeft}>
-                    <View style={[
-                      styles.transactionIcon, 
-                      { backgroundColor: getTransactionColor(transaction.type) + '20' }
-                    ]}>
-                      <Ionicons 
-                        name={getTransactionIcon(transaction.type)} 
-                        size={20} 
-                        color={getTransactionColor(transaction.type)} 
+                    <View
+                      style={[
+                        styles.transactionIcon,
+                        {
+                          backgroundColor:
+                            getTransactionColor(transaction.type) + "20",
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={getTransactionIcon(transaction.type) as any}
+                        size={fontScale(20)}
+                        color={getTransactionColor(transaction.type)}
                       />
                     </View>
                     <View style={styles.transactionInfo}>
-                      <Text style={styles.transactionGame}>{transaction.game}</Text>
-                      <Text style={styles.transactionDate}>{transaction.date}</Text>
+                      <Text style={styles.transactionGame}>
+                        {transaction.game}
+                      </Text>
+                      <Text style={styles.transactionDate}>
+                        {transaction.date}
+                      </Text>
                     </View>
                   </View>
-                  
+
                   <View style={styles.transactionRight}>
-                    <Text style={[
-                      styles.transactionAmount,
-                      { color: transaction.amount > 0 ? '#22c55e' : '#ef4444' }
-                    ]}>
-                      {transaction.amount > 0 ? '+' : ''}{transaction.amount} XAF
+                    <Text
+                      style={[
+                        styles.transactionAmount,
+                        {
+                          color: transaction.amount > 0 ? "#22c55e" : "#ef4444",
+                        },
+                      ]}
+                    >
+                      {transaction.amount > 0 ? "+" : ""}
+                      {transaction.amount} XAF
                     </Text>
-                    <View style={[
-                      styles.statusBadge,
-                      { backgroundColor: transaction.status === 'completed' ? '#22c55e20' : '#f59e0b20' }
-                    ]}>
-                      <Text style={[
-                        styles.statusText,
-                        { color: transaction.status === 'completed' ? '#22c55e' : '#f59e0b' }
-                      ]}>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        {
+                          backgroundColor:
+                            transaction.status === "completed"
+                              ? "#22c55e20"
+                              : "#f59e0b20",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusText,
+                          {
+                            color:
+                              transaction.status === "completed"
+                                ? "#22c55e"
+                                : "#f59e0b",
+                          },
+                        ]}
+                      >
                         {transaction.status}
                       </Text>
                     </View>
@@ -196,273 +510,392 @@ export default function wallet() {
               ))}
             </View>
 
-            {/* Bottom padding for tab bar */}
-            <View style={{ height: 100 }} />
+            <View style={{ height: hp(12) }} />
           </ScrollView>
-
         </SafeAreaView>
       </View>
     </ImageBackground>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(12, 12, 12, 0.75)',
+    backgroundColor: "rgba(12, 12, 12, 0.75)",
   },
   container: {
     flex: 1,
   },
-  
-  // Header Styles
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(2),
   },
   greetingText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: fontScale(20),
+    fontWeight: "600",
+    color: "#fff",
   },
   notificationButton: {
-    position: 'relative',
+    position: "relative",
   },
   notificationBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#ef4444',
-    borderRadius: 10,
-    width: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: "absolute",
+    top: -hp(0.5),
+    right: -wp(1),
+    backgroundColor: "#ef4444",
+    borderRadius: hp(1.2),
+    width: hp(2.2),
+    height: hp(2.2),
+    justifyContent: "center",
+    alignItems: "center",
   },
   notificationText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
+    color: "#fff",
+    fontSize: fontScale(10),
+    fontWeight: "700",
   },
-
-  // Scroll Content
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(2.5),
   },
-
-  // Balance Card
   balanceCardContainer: {
-    marginBottom: 25,
+    marginBottom: hp(3),
   },
   balanceCard: {
-    borderRadius: 20,
-    padding: 25,
-    position: 'relative',
-    overflow: 'hidden',
+    borderRadius: wp(5),
+    padding: wp(6),
+    position: "relative",
+    overflow: "hidden",
     elevation: 5,
-    shadowColor: '#3a6fe9',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: "#3a6fe9",
+    shadowOffset: { width: 0, height: hp(0.5) },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: hp(1),
   },
   circleDecor1: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    top: -40,
-    right: -20,
+    position: "absolute",
+    width: wp(30),
+    height: wp(30),
+    borderRadius: wp(15),
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    top: -hp(5),
+    right: -wp(5),
   },
   circleDecor2: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    bottom: -20,
-    left: -10,
+    position: "absolute",
+    width: wp(20),
+    height: wp(20),
+    borderRadius: wp(10),
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    bottom: -hp(2.5),
+    left: -wp(2.5),
   },
   balanceContent: {
     zIndex: 1,
   },
   balanceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp(2.5),
   },
   walletTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp(2.5),
   },
   walletTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
+    fontSize: fontScale(18),
+    fontWeight: "700",
+    color: "#fff",
   },
   eyeButton: {
-    padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 20,
+    padding: wp(2),
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: hp(2.5),
   },
   balanceLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 8,
+    fontSize: fontScale(13),
+    fontWeight: "500",
+    color: "rgba(255, 255, 255, 0.8)",
+    marginBottom: hp(1),
   },
   balanceAmount: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 15,
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: hp(2),
   },
   balanceNumber: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: '#fff',
-    marginRight: 8,
+    fontSize: fontScale(42),
+    fontWeight: "800",
+    color: "#fff",
+    marginRight: wp(2),
   },
   currencySymbol: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: fontScale(18),
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
   },
   bonusRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   bonusChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp(1.5),
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: hp(2.5),
   },
   bonusText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
+    color: "#fff",
+    fontSize: fontScale(13),
+    fontWeight: "600",
   },
-
-  // Quick Actions
   quickActionsContainer: {
-    marginBottom: 30,
+    marginBottom: hp(3.5),
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 15,
+    fontSize: fontScale(20),
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: hp(2),
   },
   quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: wp(3),
   },
   actionCard: {
-    width: '48%',
-    backgroundColor: 'rgba(42, 42, 42, 0.6)',
-    borderRadius: 15,
-    padding: 20,
-    alignItems: 'center',
+    width: "48%",
+    backgroundColor: "rgba(42, 42, 42, 0.6)",
+    borderRadius: wp(4),
+    padding: wp(5),
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   actionIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
+    width: wp(15),
+    height: wp(15),
+    borderRadius: wp(7.5),
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: hp(1.5),
   },
   actionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: fontScale(14),
+    fontWeight: "600",
+    color: "#fff",
   },
-
-  // Transactions
   transactionsContainer: {
-    marginBottom: 20,
+    marginBottom: hp(2.5),
   },
   transactionsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp(2),
   },
   viewAllText: {
-    fontSize: 14,
-    color: '#3a6fe9',
-    fontWeight: '600',
+    fontSize: fontScale(14),
+    color: "#3a6fe9",
+    fontWeight: "600",
   },
   transactionCard: {
-    backgroundColor: 'rgba(42, 42, 42, 0.6)',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: "rgba(42, 42, 42, 0.6)",
+    borderRadius: wp(4),
+    padding: wp(4),
+    marginBottom: hp(1.5),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   transactionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   transactionIcon: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+    width: wp(11),
+    height: wp(11),
+    borderRadius: wp(5.5),
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: wp(3),
   },
   transactionInfo: {
     flex: 1,
   },
   transactionGame: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
+    fontSize: fontScale(15),
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: hp(0.5),
   },
   transactionDate: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: fontScale(12),
+    color: "rgba(255, 255, 255, 0.5)",
   },
   transactionRight: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   transactionAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
+    fontSize: fontScale(16),
+    fontWeight: "700",
+    marginBottom: hp(0.5),
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.5),
+    borderRadius: hp(1.5),
   },
   statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+    fontSize: fontScale(11),
+    fontWeight: "600",
+    textTransform: "capitalize",
+  },
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+  },
+  modalBackground: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(12, 12, 12, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: wp(5),
+    zIndex: 100,
+  },
+  modalContent: {
+    width: "100%",
+    backgroundColor: "rgba(42, 42, 42, 0.95)",
+    borderRadius: wp(5),
+    padding: wp(6),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp(2),
+  },
+  modalTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp(3),
+  },
+  modalTitle: {
+    fontSize: fontScale(24),
+    fontWeight: "700",
+    color: "#fff",
+  },
+  closeButton: {
+    padding: wp(2),
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: hp(2),
+  },
+  modalImage: {
+    width: wp(40),
+    height: wp(40),
+    position: "absolute",
+    top: -hp(15),
+    right: -wp(-21),
+    opacity: 1,
+  },
+  inputContainer: {
+    marginTop: hp(2),
+  },
+  inputLabel: {
+    fontSize: fontScale(14),
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: hp(1),
+    marginTop: hp(2),
+  },
+  input: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: wp(3),
+    padding: wp(4),
+    color: "#fff",
+    fontSize: fontScale(16),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  submitButton: {
+    backgroundColor: "#3a6fe9",
+    borderRadius: wp(3),
+    padding: wp(4),
+    alignItems: "center",
+    marginTop: hp(3),
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: fontScale(16),
+    fontWeight: "700",
+  },
+  historyContainer: {
+    marginTop: hp(2),
+    maxHeight: hp(50),
+  },
+  historyScroll: {
+    flex: 1,
+  },
+  historyItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
+  },
+  historyLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  historyIcon: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: wp(5),
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: wp(3),
+  },
+  historyGame: {
+    fontSize: fontScale(14),
+    fontWeight: "600",
+    color: "#fff",
+  },
+  historyDate: {
+    fontSize: fontScale(11),
+    color: "rgba(255, 255, 255, 0.5)",
+    marginTop: hp(0.3),
+  },
+  historyAmount: {
+    fontSize: fontScale(15),
+    fontWeight: "700",
   },
 });
