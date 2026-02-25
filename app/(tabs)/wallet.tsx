@@ -794,6 +794,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(5),
     padding: wp(6),
     borderWidth: 1,
+    top:-350,
     borderColor: "rgba(255, 255, 255, 0.1)",
   },
   modalHeader: {

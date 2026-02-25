@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   playerInfo: {
     marginTop: -hp(26),
-    marginLeft: -wp(15),
+    marginLeft: -wp(17),
   },
   playerRank: {
     color: "#fff",
@@ -427,10 +427,10 @@ const styles = StyleSheet.create({
   },
   playerBio: {
     color: "#b2b2b2",
-    fontSize: fontScale(14),
+    fontSize: fontScale(12),
     fontWeight: "400",
     flexWrap: "wrap",
-    maxWidth: wp(58),
+    maxWidth: wp(52),
     marginTop: hp(0.6),
   },
   badgesRow: {
@@ -525,13 +525,16 @@ const styles = StyleSheet.create({
   },
   tournamentDetails: {
     flexDirection: "row",
+    justifyContent:'space-between',
+    alignItems: "center",
     gap: wp(3),
     marginTop: hp(1),
   },
   detailItem: {
     flexDirection: "row",
+    justifyContent:'space-between',
     alignItems: "center",
-    gap: wp(1),
+    gap: wp(2),
   },
   detailText: {
     color: "#e0e0e0",
