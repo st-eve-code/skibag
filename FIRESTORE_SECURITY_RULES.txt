@@ -1,0 +1,128 @@
+// Firestore Security Rules for Skibag Gaming App
+// Copy and paste this into Firebase Console → Firestore Database → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // USERS COLLECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Users can create their own profile (during signup)
+      allow create: if request.auth != null && 
+                       request.auth.uid == userId &&
+                       request.resource.data.uid == userId;
+      
+      // Users can update their own profile
+      // But cannot modify sensitive fields like referralCode, referredBy
+      allow update: if request.auth != null && 
+                       request.auth.uid == userId &&
+                       !request.resource.data.diff(resource.data).affectedKeys()
+                         .hasAny(['uid', 'referralCode', 'referredBy', 'createdAt']);
+      
+      // Users cannot delete their profile through Firestore
+      // (use deleteUserAccount function which also deletes auth)
+      allow delete: if false;
+      
+      // Allow reading referral codes for validation (without exposing full profile)
+      allow read: if request.auth != null && 
+                     request.resource.data.keys().hasOnly(['referralCode']);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // FEEDBACK COLLECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    match /feedback/{feedbackId} {
+      // Only authenticated users can submit feedback
+      allow create: if request.auth != null &&
+                       request.resource.data.uid == request.auth.uid;
+      
+      // Users can read their own feedback
+      allow read: if request.auth != null && 
+                     resource.data.uid == request.auth.uid;
+      
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // GAME RATINGS COLLECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    match /gameRatings/{ratingId} {
+      // Anyone authenticated can read ratings
+      allow read: if request.auth != null;
+      
+      // Users can only create/update their own ratings
+      allow create: if request.auth != null && 
+                       request.resource.data.uid == request.auth.uid;
+      
+      allow update: if request.auth != null && 
+                       resource.data.uid == request.auth.uid &&
+                       request.resource.data.uid == request.auth.uid;
+      
+      // Users can delete their own ratings
+      allow delete: if request.auth != null && 
+                       resource.data.uid == request.auth.uid;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // TRANSACTIONS COLLECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    match /transactions/{transactionId} {
+      // Users can read their own transactions
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Transactions can only be created by the user
+      allow create: if request.auth != null && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.createdAt == request.time;
+      
+      // No updates or deletes allowed (audit trail)
+      allow update, delete: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // ROULETTE HISTORY COLLECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    match /rouletteHistory/{historyId} {
+      // Users can read their own roulette history
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Roulette history can only be created by the user
+      allow create: if request.auth != null && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.createdAt == request.time;
+      
+      // No updates or deletes allowed (audit trail)
+      allow update, delete: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // NOTIFICATIONS COLLECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Users can mark notifications as read
+      allow update: if request.auth != null && 
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['read']);
+      
+      // System can create notifications (this should be done via Cloud Functions)
+      // For now, allow authenticated users to create for testing
+      allow create: if request.auth != null;
+      
+      // No deletes allowed
+      allow delete: if false;
+    }
+  }
+}

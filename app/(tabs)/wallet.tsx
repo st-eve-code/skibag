@@ -7,6 +7,7 @@ import {
   Image,
   ImageBackground,
   ScrollView,
+  Clipboard,
   StatusBar,
   StyleSheet,
   Text,
@@ -20,10 +21,12 @@ export default function Wallet() {
   const [balance] = useState(5000);
   const [bonusBalance] = useState(1200);
   const [userName] = useState("John");
-  const [showModal, setShowModal] = useState(false);
+const [showModal, setShowModal] = useState(false);
   const [choice, setChoice] = useState("");
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [showBalance, setShowBalance] = useState(true);
+  const [cardId] = useState("4532 8910 2234 5678");
 
   const transactions = [
     {
@@ -93,6 +96,11 @@ export default function Wallet() {
   const handleSubmit = () => {
     console.log(`${choice} - Amount: ${amount}, Recipient: ${recipient}`);
     closeModal();
+  };
+
+  const copyToClipboard = async () => {
+    await Clipboard.setString(cardId);
+    alert("Account ID copied to clipboard!");
   };
 
   const quickActions = [
@@ -193,8 +201,15 @@ export default function Wallet() {
                       />
                       <Text style={styles.walletTitle}>My Wallet</Text>
                     </View>
-                    <TouchableOpacity style={styles.eyeButton}>
-                      <Ionicons name="eye" size={fontScale(20)} color="#fff" />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() => setShowBalance(!showBalance)}
+                    >
+                      <Ionicons
+                        name={showBalance ? "eye" : "eye-off"}
+                        size={fontScale(20)}
+                        color="#fff"
+                      />
                     </TouchableOpacity>
                   </View>
 
@@ -202,12 +217,30 @@ export default function Wallet() {
 
                   <View style={styles.balanceAmount}>
                     <Text style={styles.balanceNumber}>
-                      {balance.toLocaleString()}
+                      {showBalance ? balance.toLocaleString() : "••••••"}
                     </Text>
-                    <Text style={styles.currencySymbol}>XAF</Text>
+                    <Text style={styles.currencySymbol}>
+                      {showBalance ? "XAF" : "••••"}
+                    </Text>
                   </View>
 
-                  <View style={styles.bonusRow}>
+                  <TouchableOpacity style={styles.cardIdRow} onPress={copyToClipboard} activeOpacity={0.7}>
+                    <Ionicons
+                      name="card"
+                      size={fontScale(14)}
+                      color="rgba(255, 255, 255, 0.7)"
+                    />
+                    <Text style={styles.cardIdText}>
+                      {showBalance ? cardId : "•••• •••• •••• ••••"}
+                    </Text>
+                    <Ionicons
+                      name="copy"
+                      size={fontScale(14)}
+                      color="rgba(255, 255, 255, 0.5)"
+                    />
+                  </TouchableOpacity>
+
+                  <View style={styles.footerRow}>
                     <View style={styles.bonusChip}>
                       <Ionicons
                         name="gift"
@@ -218,6 +251,7 @@ export default function Wallet() {
                         Bonus: {bonusBalance} XAF
                       </Text>
                     </View>
+                    <Text style={styles.validThru}>Valid Thru: 12/28</Text>
                   </View>
                 </View>
               </LinearGradient>
@@ -310,6 +344,7 @@ export default function Wallet() {
                       <TouchableOpacity
                         style={styles.submitButton}
                         onPress={handleSubmit}
+                        activeOpacity={0.8}
                       >
                         <Text style={styles.submitButtonText}>Deposit Now</Text>
                       </TouchableOpacity>
@@ -335,6 +370,7 @@ export default function Wallet() {
                           { backgroundColor: "#22c55e" },
                         ]}
                         onPress={handleSubmit}
+                        activeOpacity={0.8}
                       >
                         <Text style={styles.submitButtonText}>Withdraw</Text>
                       </TouchableOpacity>
@@ -342,64 +378,34 @@ export default function Wallet() {
                   )}
 
                   {choice === "History" && (
-                    <View style={styles.historyContainer}>
-                      <ScrollView style={styles.historyScroll}>
-                        {transactions.map((transaction) => (
-                          <View key={transaction.id} style={styles.historyItem}>
-                            <View style={styles.historyLeft}>
-                              <View
-                                style={[
-                                  styles.historyIcon,
-                                  {
-                                    backgroundColor:
-                                      getTransactionColor(transaction.type) +
-                                      "20",
-                                  },
-                                ]}
-                              >
-                                <Ionicons
-                                  name={
-                                    getTransactionIcon(transaction.type) as any
-                                  }
-                                  size={fontScale(16)}
-                                  color={getTransactionColor(transaction.type)}
-                                />
-                              </View>
-                              <View>
-                                <Text style={styles.historyGame}>
-                                  {transaction.game}
-                                </Text>
-                                <Text style={styles.historyDate}>
-                                  {transaction.date}
-                                </Text>
-                              </View>
-                            </View>
-                            <Text
-                              style={[
-                                styles.historyAmount,
-                                {
-                                  color:
-                                    transaction.amount > 0
-                                      ? "#22c55e"
-                                      : "#ef4444",
-                                },
-                              ]}
-                            >
-                              {transaction.amount > 0 ? "+" : ""}
-                              {transaction.amount} XAF
-                            </Text>
-                          </View>
-                        ))}
-                      </ScrollView>
-                    </View>
+                    <TouchableOpacity
+                      style={styles.fullScreenButton}
+                      onPress={() => {
+                        closeModal();
+                        router.push("/transactions");
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons
+                        name="time"
+                        size={fontScale(40)}
+                        color="#f59e0b"
+                      />
+                      <Text style={styles.fullScreenButtonText}>
+                        View All Transactions
+                      </Text>
+                      <Text style={styles.fullScreenButtonSubtext}>
+                        Tap to see your complete transaction history
+                      </Text>
+                    </TouchableOpacity>
                   )}
 
                   {choice === "Transfer" && (
                     <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>Recipient Username</Text>
+                      <Text style={styles.inputLabel}>Account ID</Text>
                       <TextInput
                         style={styles.input}
-                        placeholder="Enter username"
+                        placeholder="Enter account ID"
                         placeholderTextColor="#666"
                         value={recipient}
                         onChangeText={setRecipient}
@@ -419,6 +425,7 @@ export default function Wallet() {
                           { backgroundColor: "#8b5cf6" },
                         ]}
                         onPress={handleSubmit}
+                        activeOpacity={0.8}
                       >
                         <Text style={styles.submitButtonText}>Transfer</Text>
                       </TouchableOpacity>
@@ -431,7 +438,7 @@ export default function Wallet() {
             <View style={styles.transactionsContainer}>
               <View style={styles.transactionsHeader}>
                 <Text style={styles.sectionTitle}>Recent Transactions</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push("/transactions")}>
                   <Text style={styles.viewAllText}>View all</Text>
                 </TouchableOpacity>
               </View>
@@ -644,6 +651,29 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "rgba(255, 255, 255, 0.9)",
   },
+  cardIdRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp(2),
+    marginTop: hp(1),
+  },
+  cardIdText: {
+    fontSize: fontScale(14),
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.8)",
+    letterSpacing: 1,
+  },
+  footerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: hp(2),
+  },
+  validThru: {
+    fontSize: fontScale(12),
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.7)",
+  },
   bonusRow: {
     flexDirection: "row",
   },
@@ -794,7 +824,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(5),
     padding: wp(6),
     borderWidth: 1,
-    top:-350,
+    top: -350,
     borderColor: "rgba(255, 255, 255, 0.1)",
   },
   modalHeader: {
@@ -898,5 +928,27 @@ const styles = StyleSheet.create({
   historyAmount: {
     fontSize: fontScale(15),
     fontWeight: "700",
+  },
+  fullScreenButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: wp(4),
+    padding: wp(6),
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: hp(3),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderStyle: "dashed",
+  },
+  fullScreenButtonText: {
+    fontSize: fontScale(18),
+    fontWeight: "700",
+    color: "#fff",
+    marginTop: hp(2),
+  },
+  fullScreenButtonSubtext: {
+    fontSize: fontScale(13),
+    color: "rgba(255, 255, 255, 0.5)",
+    marginTop: hp(1),
   },
 });

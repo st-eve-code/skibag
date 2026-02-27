@@ -1,18 +1,46 @@
-import { View, Text, ImageBackground, StatusBar, TextInput, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { View, Text, ImageBackground, StatusBar, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
+import React, { useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Image } from 'expo-image'
 import { StyleSheet } from 'react-native'
 import { useFonts } from 'expo-font'
 import { router } from 'expo-router'
+import { signInWithGoogle, signInWithApple } from '@/lib/authService'
 
-export default function signup() {
+export default function Login() {
     const [fontsLoaded] = useFonts({
         "Poppins-Bold": require("@/assets/fonts/Poppins-Bold.ttf"),
         "Montserrat-Regular": require("@/assets/fonts/Montserrat-Regular.ttf"),
         });
+    
+    const [loading, setLoading] = useState(false);
+    const [referralCode, setReferralCode] = useState('');
     //don't forget to wrap it in keyboardAvoidingView
+
+    const handleGoogleSignIn = async () => {
+      try {
+        setLoading(true);
+        await signInWithGoogle(referralCode || undefined);
+        // Auth context will handle navigation
+      } catch (error: any) {
+        Alert.alert('Error', error.message || 'Failed to sign in with Google');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const handleAppleSignIn = async () => {
+      try {
+        setLoading(true);
+        await signInWithApple(referralCode || undefined);
+        // Auth context will handle navigation
+      } catch (error: any) {
+        Alert.alert('Error', error.message || 'Failed to sign in with Apple');
+      } finally {
+        setLoading(false);
+      }
+    };
   return (
     <>
     <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -49,19 +77,51 @@ export default function signup() {
                 paddingHorizontal: 20,
                 }}
                 >
+                    {/* Referral Code Input */}
+                    <View style={{ marginBottom: 15 }}>
+                        <Text style={{ color: '#b6b6b6d0', fontSize: 14, marginBottom: 8, fontFamily: 'Montserrat-Regular' }}>
+                            Have a referral code? (Optional)
+                        </Text>
+                        <TextInput
+                            style={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                padding: 15,
+                                borderRadius: 12,
+                                fontSize: 14,
+                                fontFamily: 'Montserrat-Regular',
+                                color: '#000',
+                            }}
+                            placeholder="Enter referral code"
+                            placeholderTextColor="#999"
+                            value={referralCode}
+                            onChangeText={setReferralCode}
+                            autoCapitalize="characters"
+                            maxLength={8}
+                        />
+                    </View>
+
                     {/* signup with google */}
-                    <TouchableOpacity style={{
-                        backgroundColor:'white',
-                        padding:15,
-                        borderRadius:100,
-                        width:'100%',
-                        alignItems:'center'
-                    }}>
+                    <TouchableOpacity 
+                        style={{
+                            backgroundColor:'white',
+                            padding:15,
+                            borderRadius:100,
+                            width:'100%',
+                            alignItems:'center',
+                            opacity: loading ? 0.6 : 1
+                        }}
+                        onPress={handleGoogleSignIn}
+                        disabled={loading}
+                    >
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Image 
-                                source={require('@/assets/logos/google.png')} 
-                                style={{ width: 30, height: 30, marginRight: 10 }} 
-                            />
+                            {loading ? (
+                                <ActivityIndicator size="small" color="#000" style={{ marginRight: 10 }} />
+                            ) : (
+                                <Image 
+                                    source={require('@/assets/logos/google.png')} 
+                                    style={{ width: 30, height: 30, marginRight: 10 }} 
+                                />
+                            )}
                             <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold', fontFamily: 'Montserrat-Regular' }}>
                                 Continue with Google
                             </Text>
@@ -69,19 +129,28 @@ export default function signup() {
                     </TouchableOpacity>
 
                     {/* signup with apple */}
-                    <TouchableOpacity style={{
-                        backgroundColor:'white',
-                        padding:15,
-                        borderRadius:100,
-                        width:'100%',
-                        alignItems:'center',
-                        marginTop:10
-                    }}>
+                    <TouchableOpacity 
+                        style={{
+                            backgroundColor:'white',
+                            padding:15,
+                            borderRadius:100,
+                            width:'100%',
+                            alignItems:'center',
+                            marginTop:10,
+                            opacity: loading ? 0.6 : 1
+                        }}
+                        onPress={handleAppleSignIn}
+                        disabled={loading}
+                    >
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Image 
-                                source={require('@/assets/logos/apple.png')} 
-                                style={{ width: 30, height: 30, marginRight: 10 }} 
-                            />
+                            {loading ? (
+                                <ActivityIndicator size="small" color="#000" style={{ marginRight: 10 }} />
+                            ) : (
+                                <Image 
+                                    source={require('@/assets/logos/apple.png')} 
+                                    style={{ width: 30, height: 30, marginRight: 10 }} 
+                                />
+                            )}
                             <Text style={{ color: 'black', fontSize: 16, fontWeight: 'bold', fontFamily: 'Montserrat-Regular' }}>
                                 Continue with Apple
                             </Text>

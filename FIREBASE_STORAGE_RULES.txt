@@ -1,0 +1,39 @@
+// Firebase Storage Security Rules for Skibag Gaming App
+// Copy and paste this into Firebase Console → Storage → Rules
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // AVATAR UPLOADS
+    // ═══════════════════════════════════════════════════════════════════════
+    match /avatars/{fileName} {
+      // Anyone authenticated can read avatars
+      allow read: if request.auth != null;
+      
+      // Only authenticated users can upload
+      // File must be an image and less than 5MB
+      allow write: if request.auth != null &&
+                      request.resource.size < 5 * 1024 * 1024 &&
+                      request.resource.contentType.matches('image/.*');
+      
+      // Users can delete their own avatars
+      allow delete: if request.auth != null;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // GAME MEDIA UPLOADS (for future features like screenshots, reviews)
+    // ═══════════════════════════════════════════════════════════════════════
+    match /game_media/{fileName} {
+      // Anyone authenticated can read
+      allow read: if request.auth != null;
+      
+      // Only authenticated users can upload
+      // File must be an image and less than 10MB
+      allow write: if request.auth != null &&
+                      request.resource.size < 10 * 1024 * 1024 &&
+                      request.resource.contentType.matches('image/.*');
+    }
+  }
+}

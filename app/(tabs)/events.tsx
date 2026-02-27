@@ -1,6 +1,8 @@
 import { fontScale, hp, wp } from "@/lib/responsive";
+import { useUser } from "@/lib/userContext";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
   Image,
@@ -10,9 +12,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import { Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const liveTournaments = [
@@ -117,6 +118,13 @@ const matchHistory = [
 ];
 
 export default function Events() {
+  const router = useRouter();
+  const { userData } = useUser();
+
+  const handleTournamentPress = (tournamentId: number) => {
+    router.push(`/tournament/${tournamentId}`);
+  };
+
   return (
     <ImageBackground
       source={require("@/assets/images/bg3.jpg")}
@@ -137,9 +145,18 @@ export default function Events() {
           >
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Player stats</Text>
-              <Button style={styles.leaderboardBtn}>
-                <Text style={styles.leaderboardText}>Leaderboard</Text>
-              </Button>
+              <TouchableOpacity
+                style={styles.leaderboardBtn}
+                onPress={() => router.push("/leaderboard")}
+              >
+                <ImageBackground
+                  source={require("@/assets/images/crimson.png")}
+                  style={styles.leaderboardBackground}
+                  imageStyle={styles.leaderboardImageStyle}
+                >
+                  <Text style={styles.leaderboardText}>Leaderboard</Text>
+                </ImageBackground>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.playerStatsSection}>
@@ -199,6 +216,7 @@ export default function Events() {
                   <TouchableOpacity
                     key={tournament.id}
                     style={styles.tournamentCard}
+                    onPress={() => handleTournamentPress(tournament.id)}
                   >
                     <ImageBackground
                       source={tournament.image}
@@ -266,7 +284,10 @@ export default function Events() {
             <View style={styles.section}>
               <View style={styles.historyHeader}>
                 <Text style={styles.sectionTitle}>Match History</Text>
-                <TouchableOpacity style={styles.viewAllButton}>
+                <TouchableOpacity
+                  style={styles.viewAllButton}
+                  onPress={() => router.push("/match-history")}
+                >
                   <Text style={styles.viewAllText}>View all</Text>
                 </TouchableOpacity>
               </View>
@@ -360,13 +381,29 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   leaderboardBtn: {
-    backgroundColor: "rgb(76, 63, 191)",
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.6),
+    overflow: "hidden",
+    borderRadius: 8,
+    width: wp(40),
+    height: hp(5.5),
+  },
+  leaderboardBackground: {
+    flex: 1,
+    top: -15,
+    left: 0,
+    width: "100%",
+    height: "180%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  leaderboardImageStyle: {
+    borderRadius: 3,
+    resizeMode: "stretch",
   },
   leaderboardText: {
     color: "#fff",
-    fontSize: fontScale(15),
+    fontSize: fontScale(14),
+    fontWeight: "600",
+    top: 16,
   },
   playerStatsSection: {
     width: "100%",
@@ -423,7 +460,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: fontScale(20),
     fontWeight: "500",
-    marginLeft: -wp(2.5),
+    marginLeft: -wp(4),
   },
   playerBio: {
     color: "#b2b2b2",
@@ -525,14 +562,14 @@ const styles = StyleSheet.create({
   },
   tournamentDetails: {
     flexDirection: "row",
-    justifyContent:'space-between',
+    justifyContent: "space-between",
     alignItems: "center",
     gap: wp(3),
     marginTop: hp(1),
   },
   detailItem: {
     flexDirection: "row",
-    justifyContent:'space-between',
+    justifyContent: "space-between",
     alignItems: "center",
     gap: wp(2),
   },
