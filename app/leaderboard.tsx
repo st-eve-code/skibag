@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Image,
   ImageBackground,
   ScrollView,
   StatusBar,
@@ -201,7 +202,7 @@ export default function Leaderboard() {
                   selectedType === "global" && styles.categoryTextActive,
                 ]}
               >
-                Global
+                Global players leaderboard
               </Text>
             </TouchableOpacity>
           </View>
@@ -209,57 +210,145 @@ export default function Leaderboard() {
           {/* Top 3 Podium */}
           {selectedType === "global" && (
             <View style={styles.podiumContainer}>
-              {/* 2nd Place */}
-              <View style={styles.podiumItem}>
-                <View style={[styles.podiumAvatar, styles.podiumAvatarSecond]}>
-                  <Text style={styles.podiumAvatarText}>
-                    {topThree[1]?.avatar || "2"}
-                  </Text>
-                </View>
-                <Text style={styles.podiumName}>{topThree[1]?.name || ""}</Text>
-                <View style={styles.podiumStand}>
-                  <Text style={styles.podiumScore}>
-                    {topThree[1]?.score.toLocaleString()}
-                  </Text>
-                  <Text style={styles.podiumRank}>#2</Text>
-                </View>
+              {/* <ImageBackground
+                source={require("@/assets/images/podium.jpg")}
+                style={styles.podiumBackground}
+                resizeMode="contain"
+              > */}
+              {/* Winner's Circle Title */}
+              <View style={styles.winnersCircleHeader}>
+                <Image
+                  source={require("@/assets/ranks/top.png")}
+                  style={{
+                    width: wp(30),
+                    height: hp(18.8),
+                    marginLeft: wp(0.2),
+                    marginTop: -hp(20),
+                    position:'absolute',
+                    zIndex:100
+                  }}
+                />
+                {/* <Ionicons name="trophy" size={fontScale(24)} color="#FFD700" />
+                  {/* <Text style={styles.winnersCircleTitle}>WINNER'S CIRCLE</Text> */}
+                {/* <Ionicons name="trophy" size={fontScale(24)} color="#FFD700" /> */}{" "}
+                */
               </View>
 
-              {/* 1st Place */}
-              <View style={styles.podiumItem}>
-                <View style={[styles.podiumAvatar, styles.podiumAvatarFirst]}>
-                  <Ionicons
-                    name="star"
-                    size={fontScale(20)}
-                    color="#FFD700"
-                    style={styles.crownIcon}
+              <View style={styles.podiumPlayersContainer}>
+                {/* 2nd Place - Left */}
+                <View
+                  style={[
+                    styles.podiumPlayerWrapper,
+                    styles.secondPlaceWrapper,
+                  ]}
+                >
+                  <Image
+                    source={require("@/assets/ranks/second.png")}
+                    style={{
+                      width: wp(24),
+                      height: hp(13),
+                      marginLeft: wp(0),
+                      marginTop: -20,
+                      position: "absolute",
+                      zIndex:100
+                    }}
                   />
-                  <Text style={styles.podiumAvatarText}>
-                    {topThree[0]?.avatar || "1"}
+                  <View
+                    style={[styles.podiumAvatar, styles.podiumAvatarSecond]}
+                  >
+                    <Text style={styles.podiumAvatarText}>
+                      {topThree[1]?.avatar || "2"}
+                    </Text>
+                    <View style={styles.medalBadge}>
+                      <Ionicons
+                        name="medal"
+                        size={fontScale(16)}
+                        color="#C0C0C0"
+                      />
+                    </View>
+                  </View>
+                  <Text style={styles.podiumName} numberOfLines={1}>
+                    {topThree[1]?.name || ""}
                   </Text>
+                  {/* <View style={styles.podiumScoreCard}>
+                      <Text style={styles.podiumScore}>
+                        {topThree[1]?.score.toLocaleString()}
+                      </Text>
+                      <Text style={styles.scoreSubtext}>points</Text>
+                    </View> */}
                 </View>
-                <Text style={styles.podiumName}>{topThree[0]?.name || ""}</Text>
-                <View style={[styles.podiumStand, styles.podiumStandFirst]}>
-                  <Text style={styles.podiumScore}>
-                    {topThree[0]?.score.toLocaleString()}
-                  </Text>
-                  <Text style={styles.podiumRank}>#1</Text>
-                </View>
-              </View>
 
-              {/* 3rd Place */}
-              <View style={styles.podiumItem}>
-                <View style={[styles.podiumAvatar, styles.podiumAvatarThird]}>
-                  <Text style={styles.podiumAvatarText}>
-                    {topThree[2]?.avatar || "3"}
-                  </Text>
+                {/* 1st Place - Center */}
+                <View
+                  style={[styles.podiumPlayerWrapper, styles.firstPlaceWrapper]}
+                >
+                  {/* <Ionicons
+                      name="star"
+                      size={fontScale(28)}
+                      color="#FFD700"
+                      style={styles.crownIcon}
+                    /> */}
+                  <View style={[styles.podiumAvatar, styles.podiumAvatarFirst]}>
+                    <Text
+                      style={[styles.podiumAvatarText, styles.firstPlaceText]}
+                    >
+                      {topThree[0]?.avatar || "1"}
+                    </Text>
+                    <View style={[styles.medalBadge, styles.goldMedalBadge]}>
+                      <Ionicons
+                        name="medal"
+                        size={fontScale(20)}
+                        color="#fdcc86"
+                      />
+                    </View>
+                  </View>
+                  {/* <Text style={[styles.podiumName, styles.firstPlaceName]} numberOfLines={1}>
+                      {topThree[0]?.name || ""}
+                    </Text> */}
+                  {/* <View style={[styles.podiumScoreCard, styles.firstPlaceScoreCard]}>
+                      <Text style={[styles.podiumScore, styles.firstPlaceScore]}>
+                        {topThree[0]?.score.toLocaleString()}
+                      </Text>
+                      <Text style={styles.scoreSubtext}>points</Text>
+                    </View> */}
                 </View>
-                <Text style={styles.podiumName}>{topThree[2]?.name || ""}</Text>
-                <View style={styles.podiumStand}>
-                  <Text style={styles.podiumScore}>
-                    {topThree[2]?.score.toLocaleString()}
+
+                {/* 3rd Place - Right */}
+                <View
+                  style={[styles.podiumPlayerWrapper, styles.thirdPlaceWrapper]}
+                >
+                  <View style={[styles.podiumAvatar, styles.podiumAvatarThird]}>
+                    <Image
+                      source={require("@/assets/ranks/last.png")}
+                      style={{
+                        width: wp(20),
+                        height: hp(15),
+                        position: "absolute",
+                        zIndex:100,
+                        top: -hp(4),
+                        left: -wp(3),
+                      }}
+                    />
+                    <Text style={styles.podiumAvatarText}>
+                      {topThree[2]?.avatar || "3"}
+                    </Text>
+                    <View style={styles.medalBadge}>
+                      <Ionicons
+                        name="medal"
+                        size={fontScale(16)}
+                        color="#CD7F32"
+                      />
+                    </View>
+                  </View>
+                  <Text style={styles.podiumName} numberOfLines={1}>
+                    {topThree[2]?.name || ""}
                   </Text>
-                  <Text style={styles.podiumRank}>#3</Text>
+                  {/* <View style={styles.podiumScoreCard}>
+                    <Text style={styles.podiumScore}>
+                      {topThree[2]?.score.toLocaleString()}
+                    </Text>
+                    <Text style={styles.scoreSubtext}>points</Text>
+                  </View> */}
                 </View>
               </View>
             </View>
@@ -269,6 +358,18 @@ export default function Leaderboard() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
+            <View style={{ height: hp(6) }}>
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: fontScale(18),
+                  fontWeight: "700",
+                  marginLeft: 3,
+                }}
+              >
+                Gamers Leaderboard
+              </Text>
+            </View>
             {/* Leaderboard List */}
             <View style={styles.leaderboardList}>
               {currentLeaderboard.map(renderLeaderboardItem)}
@@ -340,82 +441,169 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4.5),
   },
   podiumContainer: {
+    paddingHorizontal: wp(2),
+    marginBottom: hp(3),
+    marginTop: hp(1),
+  },
+  podiumBackground: {
+    width: "100%",
+    height: hp(35),
+    justifyContent: "flex-start",
+    paddingTop: hp(2),
+  },
+  winnersCircleHeader: {
     flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
+    gap: wp(1.5),
+    marginBottom: hp(1),
+    marginTop:hp(20)
+  },
+  winnersCircleTitle: {
+    color: "#FFD700",
+    fontSize: fontScale(16),    
+    fontWeight: "800",
+    letterSpacing: 2,
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  podiumPlayersContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "flex-end",
     paddingHorizontal: wp(4),
-    marginBottom: hp(3),
-    gap: wp(2),
+    flex: 1,
+    paddingBottom: hp(2),
   },
-  podiumItem: {
+  podiumPlayerWrapper: {
     alignItems: "center",
     flex: 1,
   },
-  podiumAvatar: {
-    width: wp(14),
-    height: wp(14),
-    borderRadius: wp(7),
-    justifyContent: "center",
-    alignItems: "center",
+  firstPlaceWrapper: {
+    marginBottom: hp(4),
+  },
+  secondPlaceWrapper: {
     marginBottom: hp(1),
   },
+  thirdPlaceWrapper: {
+    marginBottom: hp(1),
+  },
+  podiumAvatar: {
+    width: wp(15),
+    height: wp(15),
+    borderRadius: wp(7.5),
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: hp(0.8),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+  },
   podiumAvatarFirst: {
-    backgroundColor: "rgba(255, 215, 0, 0.3)",
-    borderWidth: 2,
-    borderColor: "#FFD700",
-    width: wp(16),
-    height: wp(16),
-    borderRadius: wp(8),
+    backgroundColor: "#188c9b",
+    borderWidth: 3,
+    borderColor: "#FFF",
+    width: wp(18),
+    height: wp(18),
+    borderRadius: wp(9),
+    shadowColor: "#FFD700",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 12,
   },
   podiumAvatarSecond: {
-    backgroundColor: "rgba(192, 192, 192, 0.3)",
-    borderWidth: 2,
-    borderColor: "#C0C0C0",
+    backgroundColor: "#C0C0C0",
+    borderWidth: 0,
+    borderColor: "#FFF",
   },
   podiumAvatarThird: {
-    backgroundColor: "rgba(205, 127, 50, 0.3)",
-    borderWidth: 2,
-    borderColor: "#CD7F32",
+    backgroundColor: "#CD7F32",
+    borderWidth: 3,
+    borderColor: "#FFF",
   },
   crownIcon: {
     position: "absolute",
-    top: -hp(1.5),
+    top: -hp(2.5),
+    zIndex: 10,
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  medalBadge: {
+    position: "absolute",
+    zIndex:-100,
+    bottom: -hp(0.5),
+    right: -wp(1),
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: wp(4),
+    padding: wp(1),
+    borderWidth: 2,
+    borderColor: "#FFF",
+  },
+  goldMedalBadge: {
+    bottom: -hp(0.8),
+    right: -wp(1.5),
+    padding: wp(1.5),
   },
   podiumAvatarText: {
-    color: "#fff",
-    fontSize: fontScale(20),
-    fontWeight: "700",
+    color: "#1a1a1a",
+    fontSize: fontScale(18),
+    fontWeight: "900",
+    textShadowColor: "rgba(255, 255, 255, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  firstPlaceText: {
+    fontSize: fontScale(22),
   },
   podiumName: {
     color: "#fff",
     fontSize: fontScale(11),
-    fontWeight: "600",
+    fontWeight: "700",
     marginBottom: hp(0.5),
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+    maxWidth: wp(25),
   },
-  podiumStand: {
-    backgroundColor: "rgba(42, 42, 42, 0.8)",
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(1),
-    borderRadius: wp(2),
+  firstPlaceName: {
+    fontSize: fontScale(13),
+    color: "#FFD700",
+  },
+  podiumScoreCard: {
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    paddingHorizontal: wp(2.5),
+    paddingVertical: hp(0.6),
+    borderRadius: wp(3),
     alignItems: "center",
-    minWidth: wp(20),
-  },
-  podiumStandFirst: {
-    backgroundColor: "rgba(255, 215, 0, 0.2)",
     borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  firstPlaceScoreCard: {
+    backgroundColor: "rgba(255, 215, 0, 0.3)",
     borderColor: "#FFD700",
-    minWidth: wp(24),
-    paddingVertical: hp(1.5),
+    borderWidth: 2,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
   },
   podiumScore: {
     color: "#fff",
     fontSize: fontScale(12),
-    fontWeight: "700",
+    fontWeight: "800",
   },
-  podiumRank: {
+  firstPlaceScore: {
+    color: "#FFD700",
+    fontSize: fontScale(14),
+  },
+  scoreSubtext: {
     color: "#a0a0a0",
-    fontSize: fontScale(10),
+    fontSize: fontScale(8),
+    marginTop: hp(0.2),
   },
   leaderboardList: {
     gap: hp(1),

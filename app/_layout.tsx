@@ -1,21 +1,20 @@
-import { Stack, router } from "expo-router";
 import { AuthProvider, useAuth } from "@/lib/authContext";
-import { UserProvider } from "@/lib/userContext";
-import { useEffect } from "react";
 import { initializeNotifications } from "@/lib/notificationService";
+import { UserProvider } from "@/lib/userContext";
+import { Stack, router } from "expo-router";
+import { useEffect } from "react";
 
 function RootNavigator() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (loading) return; // wait until auth state is known
+    if (loading) return;
 
     if (user) {
-      router.replace('/(tabs)'); // authenticated → go to game
-      // Initialize notifications after user is authenticated
+      router.replace("/(tabs)");
       initializeNotifications().catch(console.error);
     } else {
-      router.replace('/(auth)'); // not authenticated → go to login
+      router.replace("/(auth)");
     }
   }, [user, loading]);
 
@@ -35,7 +34,7 @@ function RootNavigator() {
   );
 }
 
-export default function _layout() {
+export default function RootLayout() {
   return (
     <AuthProvider>
       <UserProvider>

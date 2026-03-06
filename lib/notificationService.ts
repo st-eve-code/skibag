@@ -1,277 +1,143 @@
-import { Platform } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
+import { Platform } from "react-native";
+import { supabase } from "./supabase";
 
-// Conditional imports to avoid errors before native build
-let messaging: any;
+// Conditional import — Notifee requires a native build
 let notifee: any;
 let AndroidImportance: any;
 let EventType: any;
 
 try {
-  messaging = require('@react-native-firebase/messaging').default;
-} catch (error) {
-  console.warn('Firebase Messaging not available - push notifications will not work until native build is complete');
-}
-
-try {
-  const notifeeModule = require('@notifee/react-native');
+  const notifeeModule = require("@notifee/react-native");
   notifee = notifeeModule.default;
   AndroidImportance = notifeeModule.AndroidImportance;
   EventType = notifeeModule.EventType;
 } catch (error) {
-  console.warn('Notifee not available - local notifications will not work until native build is complete');
+  console.warn(
+    "Notifee not available — local notifications require a native build.",
+  );
 }
 
-/**
- * Request notification permissions
- */
+// ─── Request notification permissions ────────────────────────────────────────
 export const requestNotificationPermission = async (): Promise<boolean> => {
-  if (!messaging) {
-    console.warn('Firebase Messaging not available - skipping permission request');
-    return false;
-  }
-  
   try {
-    if (Platform.OS === 'ios') {
-      const authStatus = await messaging().requestPermission();
-      return (
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL
-      );
-    }
-    
-    // Android 13+ requires permission
     if (notifee && notifee.requestPermission) {
       await notifee.requestPermission();
     }
     return true;
   } catch (error) {
-    console.error('Error requesting notification permission:', error);
+    console.error("Error requesting notification permission:", error);
     return false;
   }
 };
 
-/**
- * Get FCM token and save to Firestore
- */
-export const getFCMToken = async (): Promise<string | null> => {
-  if (!messaging) {
-    console.warn('Firebase Messaging not available - skipping FCM token');
-    return null;
-  }
-  
+// ─── Create Android notification channel ─────────────────────────────────────
+export const createNotificationChannel = async (): Promise<void> => {
+  if (!notifee || Platform.OS !== "android") return;
   try {
-    const token = await messaging().getToken();
-    
-    // Save token to user's Firestore profile
-    const user = auth().currentUser;
-    if (user && token) {
-      await firestore().collection('users').doc(user.uid).update({
-        fcmToken: token,
-        fcmTokenUpdatedAt: firestore.FieldValue.serverTimestamp(),
-      });
-    }
-    
-    return token;
-  } catch (error) {
-    console.error('Error getting FCM token:', error);
-    return null;
-  }
-};
-
-/**
- * Send notification to a specific user
- * This would typically be called from a backend/cloud function
- * For now, we'll store notifications in Firestore
- */
-export const sendNotificationToUser = async (
-  userId: string,
-  title: string,
-  body: string,
-  data?: any
-) => {
-  try {
-    await firestore().collection('notifications').add({
-      userId,
-      title,
-      body,
-      data: data ?? {},
-      read: false,
-      createdAt: firestore.FieldValue.serverTimestamp(),
+    await notifee.createChannel({
+      id: "default",
+      name: "Default Channel",
+      importance: AndroidImportance?.HIGH ?? 4,
     });
   } catch (error) {
-    console.error('Error sending notification:', error);
+    console.error("Error creating notification channel:", error);
   }
 };
 
-/**
- * Display local notification using Notifee
- */
+// ─── Display a local notification ────────────────────────────────────────────
 export const displayLocalNotification = async (
   title: string,
   body: string,
-  data?: any
-) => {
+): Promise<void> => {
   if (!notifee) {
-    console.warn('Notifee not available - skipping notification');
+    console.warn("Notifee not available — cannot display notification");
     return;
   }
-  
   try {
-    // Create a channel (required for Android)
-    const channelId = await notifee.createChannel({
-      id: 'default',
-      name: 'Default Channel',
-      importance: AndroidImportance.HIGH,
-    });
-
-    // Display notification
+    await createNotificationChannel();
     await notifee.displayNotification({
       title,
       body,
-      data,
       android: {
-        channelId,
-        importance: AndroidImportance.HIGH,
-        pressAction: {
-          id: 'default',
-        },
-      },
-      ios: {
-        foregroundPresentationOptions: {
-          alert: true,
-          badge: true,
-          sound: true,
-        },
+        channelId: "default",
+        smallIcon: "ic_launcher",
+        pressAction: { id: "default" },
       },
     });
   } catch (error) {
-    console.error('Error displaying notification:', error);
+    console.error("Error displaying notification:", error);
   }
 };
 
-/**
- * Listen for referral notifications
- */
-export const setupReferralNotifications = async () => {
-  const user = auth().currentUser;
-  if (!user) return;
-
-  // Listen to user's referral updates
-  const unsubscribe = firestore()
-    .collection('users')
-    .doc(user.uid)
-    .onSnapshot((snapshot) => {
-      const data = snapshot.data();
-      const previousCount = snapshot.metadata.hasPendingWrites ? 0 : data?.referralCount ?? 0;
-      
-      // Check if referral count increased
-      if (data?.referralCount && data.referralCount > previousCount) {
-        displayLocalNotification(
-          '🎉 New Referral!',
-          `You earned ${data.referralPointsPerReferral ?? 100} points! Someone used your referral code.`,
-          { type: 'referral' }
-        );
-      }
-    });
-
-  return unsubscribe;
-};
-
-/**
- * Handle foreground messages
- */
-export const setupForegroundMessageHandler = () => {
-  if (!messaging) {
-    console.warn('Firebase Messaging not available - skipping foreground handler');
-    return () => {};
-  }
-  
-  return messaging().onMessage(async (remoteMessage) => {
-    console.log('Foreground message:', remoteMessage);
-    
-    if (remoteMessage.notification) {
-      await displayLocalNotification(
-        remoteMessage.notification.title || 'Notification',
-        remoteMessage.notification.body || '',
-        remoteMessage.data
-      );
-    }
-  });
-};
-
-/**
- * Handle background messages
- */
-export const setupBackgroundMessageHandler = () => {
-  if (!messaging) {
-    console.warn('Firebase Messaging not available - skipping background handler');
-    return;
-  }
-  
-  messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-    console.log('Background message:', remoteMessage);
-  });
-};
-
-/**
- * Handle notification tap/press
- */
-export const setupNotificationPressHandler = () => {
-  if (!notifee) {
-    console.warn('Notifee not available - skipping press handler');
-    return () => {};
-  }
-  
-  return notifee.onForegroundEvent(({ type, detail }) => {
-    if (type === EventType.PRESS) {
-      console.log('Notification pressed:', detail.notification);
-      // Handle navigation based on notification data
-      const data = detail.notification?.data;
-      if (data?.type === 'referral') {
-        // Navigate to referral/rewards screen
-      }
-    }
-  });
-};
-
-/**
- * Initialize notification services
- */
-export const initializeNotifications = async () => {
+// ─── Save notification record to Supabase ────────────────────────────────────
+export const saveNotificationRecord = async (
+  userId: string,
+  title: string,
+  body: string,
+  type?: string,
+): Promise<void> => {
   try {
-    // Request permission
-    const hasPermission = await requestNotificationPermission();
-    if (!hasPermission) {
-      console.log('Notification permission denied');
-      return;
-    }
-
-    // Get FCM token
-    await getFCMToken();
-
-    // Setup handlers
-    setupBackgroundMessageHandler();
-    setupForegroundMessageHandler();
-    setupNotificationPressHandler();
-    
-    // Setup referral notifications
-    await setupReferralNotifications();
-
-    // Listen for token refresh
-    if (messaging) {
-      messaging().onTokenRefresh(async (token) => {
-        const user = auth().currentUser;
-        if (user) {
-          await firestore().collection('users').doc(user.uid).update({
-            fcmToken: token,
-            fcmTokenUpdatedAt: firestore.FieldValue.serverTimestamp(),
-          });
-        }
-      });
-    }
+    await supabase.from("notifications").insert({
+      user_id: userId,
+      title,
+      body,
+      type: type ?? "general",
+    });
   } catch (error) {
-    console.error('Error initializing notifications:', error);
+    console.error("Error saving notification record:", error);
+  }
+};
+
+// ─── Get user notifications from Supabase ────────────────────────────────────
+export const getUserNotifications = async (limit: number = 30) => {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return [];
+
+  const { data } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userData.user.id)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return data ?? [];
+};
+
+// ─── Mark notification as read ────────────────────────────────────────────────
+export const markNotificationRead = async (
+  notificationId: string,
+): Promise<void> => {
+  await supabase
+    .from("notifications")
+    .update({ read: true })
+    .eq("id", notificationId);
+};
+
+// ─── Send referral notification (local + DB record) ──────────────────────────
+export const sendReferralNotification = async (
+  referrerId: string,
+  newUserName: string,
+): Promise<void> => {
+  const title = "🎉 New Referral!";
+  const body = `${newUserName} joined using your referral code. You earned 100 points!`;
+
+  await saveNotificationRecord(referrerId, title, body, "referral");
+  await displayLocalNotification(title, body);
+};
+
+// ─── Initialize notifications on app start ───────────────────────────────────
+export const initializeNotifications = async (): Promise<void> => {
+  await requestNotificationPermission();
+  await createNotificationChannel();
+
+  // Listen for Notifee foreground events
+  if (notifee && EventType) {
+    notifee.onForegroundEvent(
+      ({ type, detail }: { type: any; detail: any }) => {
+        if (type === EventType.PRESS) {
+          console.log("Notification pressed:", detail.notification);
+        }
+      },
+    );
   }
 };

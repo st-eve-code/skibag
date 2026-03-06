@@ -1,68 +1,82 @@
-import storage from '@react-native-firebase/storage';
-import auth from '@react-native-firebase/auth';
+import { supabase } from "./supabase";
+
+const BUCKET = "avatars";
 
 /**
- * Upload profile picture to Firebase Storage
- * @param uri - Local file URI
- * @returns Download URL of uploaded image
+ * Upload profile picture to Supabase Storage.
+ * @param uri - Local file URI (from expo-image-picker)
+ * @returns Public URL of the uploaded image
  */
 export const uploadProfilePicture = async (uri: string): Promise<string> => {
-  const user = auth().currentUser;
-  if (!user) throw new Error('User not authenticated');
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("User not authenticated");
 
-  try {
-    const filename = `profile_${user.uid}_${Date.now()}.jpg`;
-    const reference = storage().ref(`avatars/${filename}`);
+  const uid = userData.user.id;
+  const filename = `profile_${uid}_${Date.now()}.jpg`;
+  const path = `${uid}/${filename}`;
 
-    // Upload file
-    await reference.putFile(uri);
+  // Fetch the file as a blob
+  const response = await fetch(uri);
+  const blob = await response.blob();
 
-    // Get download URL
-    const downloadURL = await reference.getDownloadURL();
-    
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading profile picture:', error);
-    throw new Error('Failed to upload profile picture');
-  }
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+
+  if (error) throw new Error(`Upload failed: ${error.message}`);
+
+  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return urlData.publicUrl;
 };
 
 /**
- * Delete old profile picture from Firebase Storage
- * @param photoURL - Firebase Storage URL to delete
+ * Delete old profile picture from Supabase Storage.
+ * @param publicUrl - The public URL previously returned by uploadProfilePicture
  */
-export const deleteProfilePicture = async (photoURL: string): Promise<void> => {
+export const deleteProfilePicture = async (
+  publicUrl: string,
+): Promise<void> => {
   try {
-    if (!photoURL || !photoURL.includes('firebase')) return;
-    
-    const reference = storage().refFromURL(photoURL);
-    await reference.delete();
+    if (!publicUrl || !publicUrl.includes(BUCKET)) return;
+
+    // Extract the storage path from the public URL
+    const urlParts = publicUrl.split(`/${BUCKET}/`);
+    if (urlParts.length < 2) return;
+
+    const path = urlParts[1];
+    await supabase.storage.from(BUCKET).remove([path]);
   } catch (error) {
-    console.error('Error deleting profile picture:', error);
-    // Don't throw - it's okay if deletion fails
+    console.error("Error deleting profile picture:", error);
+    // Non-fatal
   }
 };
 
 /**
- * Upload game screenshot or media
+ * Upload game screenshot or media to Supabase Storage.
  * @param uri - Local file URI
  * @param gameId - Game identifier
- * @returns Download URL of uploaded image
+ * @returns Public URL of the uploaded image
  */
-export const uploadGameMedia = async (uri: string, gameId: string): Promise<string> => {
-  const user = auth().currentUser;
-  if (!user) throw new Error('User not authenticated');
+export const uploadGameMedia = async (
+  uri: string,
+  gameId: string,
+): Promise<string> => {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("User not authenticated");
 
-  try {
-    const filename = `game_${gameId}_${user.uid}_${Date.now()}.jpg`;
-    const reference = storage().ref(`game_media/${filename}`);
+  const uid = userData.user.id;
+  const filename = `game_${gameId}_${uid}_${Date.now()}.jpg`;
+  const path = `game_media/${filename}`;
 
-    await reference.putFile(uri);
-    const downloadURL = await reference.getDownloadURL();
-    
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading game media:', error);
-    throw new Error('Failed to upload media');
-  }
+  const response = await fetch(uri);
+  const blob = await response.blob();
+
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+
+  if (error) throw new Error(`Upload failed: ${error.message}`);
+
+  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return urlData.publicUrl;
 };

@@ -106,6 +106,10 @@ export default function Index() {
                 <Ionicons name="flash" size={fontScale(16)} color="#ffffff" />
                 <Text style={styles.balanceText}>5000</Text>
               </View>
+              <View style={styles.rankContainer}>
+                <Image source={require('@/assets/ranks/beginner.png')} style={{width:wp(10),height:hp(5)}}/>
+                <Text style={styles.balanceText}>13</Text>
+              </View>
               <View style={styles.headerRight}>
                 <TouchableOpacity onPress={() => router.push("/notifications")}>
                   <Ionicons
@@ -470,7 +474,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
+    paddingVertical: hp(2.5),
   },
   balanceContainer: {
     backgroundColor: "#3a7be4fe",
@@ -478,6 +482,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: wp(1),
     height: hp(4.5),
+    paddingHorizontal: wp(2),
+    borderRadius: hp(2.5),
+  },
+    rankContainer: {
+    backgroundColor: "#00000000",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp(1.5),
+    height: hp(4.5),
+    marginLeft:-60,
     paddingHorizontal: wp(2),
     borderRadius: hp(2.5),
   },
@@ -657,7 +671,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: hp(0.3),
   },
-  smallGameCard: { width: wp(38), overflow: "hidden", borderRadius: wp(3), height:'100%' },
+  smallGameCard: { 
+    width: wp(38), 
+    overflow: "hidden", 
+    borderRadius: wp(3),
+    height: wp(38) / 0.8, // Maintain same aspect ratio (3.2/4 = 0.8)
+  },
   smallGameImage: { width: "100%" },
   smallGameTitle: {
     fontSize: fontScale(13),

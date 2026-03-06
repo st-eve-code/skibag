@@ -11,7 +11,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gameapp.tech",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -26,8 +28,7 @@
       "navigationBarDarkConfig": {
         "backgroundColor": "#000000"
       },
-      "package": "com.gameapp.tech",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.gameapp.tech"
     },
     "web": {
       "output": "static",
@@ -49,14 +50,7 @@
       ],
       "expo-font",
       "expo-video",
-      "expo-dev-client",
-      "@react-native-firebase/app",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.503844014288-7f73or0kc60if1ke91pp1297m9vg3edg"
-        }
-      ]
+      "expo-dev-client"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -65,8 +59,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d47bd271-a0ab-4770-a162-be3f49dfa1d2"
+        "projectId": "4f06ef01-7d2b-4976-958c-01999462db87"
       }
-    }
+    },
+    "owner": "skibags-organization"
   }
 }

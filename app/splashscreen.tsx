@@ -1,9 +1,8 @@
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
-import { VideoView, useVideoPlayer } from "expo-video";
 import React, { useEffect, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, Image, StyleSheet, View } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
@@ -13,63 +12,40 @@ ExpoSplashScreen.preventAutoHideAsync();
 export default function SplashScreenPage() {
   const router = useRouter();
   const [hasNavigated, setHasNavigated] = useState(false);
-  const [videoEnded, setVideoEnded] = useState(false);
-  
+
   const [fontsLoaded, fontError] = useFonts({
     "Poppins-Bold": require("@/assets/fonts/Poppins-Bold.ttf"),
     "Montserrat-Regular": require("@/assets/fonts/Montserrat-Regular.ttf"),
   });
 
-  const videoSource = require("@/assets/splashscreenvideo/loading.mp4");
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.loop = false;
-    player.play();
-  });
+  const logoSource = require("@/assets/logos/logo.png");
 
   // Hide native splash screen immediately when component mounts
   useEffect(() => {
     ExpoSplashScreen.hideAsync();
   }, []);
 
-  // Track when video ends
-  useEffect(() => {
-    const checkVideoStatus = setInterval(() => {
-      // Video has ended when it's not playing and has progressed
-      if (!player.playing && player.currentTime > 0 && player.currentTime >= player.duration - 0.1) {
-        setVideoEnded(true);
-        clearInterval(checkVideoStatus);
-      }
-    }, 100); // Check every 100ms
-
-    return () => clearInterval(checkVideoStatus);
-  }, [player.playing, player.currentTime, player.duration]);
-
-  // Navigate when BOTH video ended AND fonts loaded
+  // Navigate when fonts are loaded
   useEffect(() => {
     if (hasNavigated) return;
 
     const fontsReady = fontsLoaded || fontError;
 
-    if (videoEnded && fontsReady) {
-      console.log("Video ended and fonts loaded - navigating!");
-      setHasNavigated(true);
-      router.replace("/(onboardScreen)");
-    } else if (videoEnded) {
-      console.log("Video ended, waiting for fonts...");
-    } else if (fontsReady) {
-      console.log("Fonts ready, waiting for video...");
+    if (fontsReady) {
+      // Add a small delay for better UX
+      const timer = setTimeout(() => {
+        console.log("Fonts loaded - navigating!");
+        setHasNavigated(true);
+        router.replace("/(onboardScreen)");
+      }, 2000);
+
+      return () => clearTimeout(timer);
     }
-  }, [videoEnded, fontsLoaded, fontError, hasNavigated]);
+  }, [fontsLoaded, fontError, hasNavigated, router]);
 
   return (
     <View style={styles.container}>
-      <VideoView
-        player={player}
-        style={styles.video}
-        contentFit="cover"
-        nativeControls={false}
-        
-      />
+      <Image source={logoSource} style={styles.logo} resizeMode="contain" />
     </View>
   );
 }
@@ -78,9 +54,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  video: {
-    width: width,
-    height: height,
+  logo: {
+    width: width * 0.7,
+    height: height * 0.5,
   },
 });

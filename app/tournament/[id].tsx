@@ -34,6 +34,7 @@ const tournamentData: { [key: string]: any } = {
     players: "64/128",
     status: "Live",
     entry: "$25",
+    timeleft:'12 : 30 : 00',
     image: require("@/assets/gameicons/pbg.jpeg"),
     description:
       "The ultimate PUBG Mobile tournament! Compete against the best players worldwide for a massive prize pool.",
@@ -46,6 +47,7 @@ const tournamentData: { [key: string]: any } = {
     players: "32/64",
     status: "Starting Soon",
     entry: "$15",
+    timeleft:'24 : 35 : 50',
     image: require("@/assets/gameicons/cod.jpg"),
     description:
       "Join the weekend warriors! Fast-paced COD matches with exciting prizes.",
@@ -58,6 +60,7 @@ const tournamentData: { [key: string]: any } = {
     players: "16/32",
     status: "Live",
     entry: "$10",
+    timeleft:'34 : 30 : 30',
     image: require("@/assets/gameicons/street.jpeg"),
     description:
       "Prove you're the best fighter! Street Fighter V tournament with top players.",
@@ -70,6 +73,7 @@ const tournamentData: { [key: string]: any } = {
     players: "24/32",
     status: "Live",
     entry: "$20",
+    timeleft:'14 : 50 : 60',
     image: require("@/assets/gameicons/race.jpeg"),
     description:
       "Speed through the competition! Mario Kart championship awaits.",
@@ -176,6 +180,10 @@ export default function TournamentDetail() {
                           color="#FFD700"
                         />
                         <Text style={styles.prizeText}>{tournament.prize}</Text>
+                        <View style={{flexDirection:'row',alignItems:'center',gap:5}}>
+                          <Text style={{color:'white',paddingLeft:12}}>Time Left :</Text>
+                          <Text style={{color:'white'}}>{tournament.timeleft}</Text>
+                        </View>
                       </View>
                       <View style={styles.prizeItem}>
                         <Ionicons
