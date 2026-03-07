@@ -28,16 +28,15 @@ export default function Login() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [referralCode, setReferralCode] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
-      await signInWithGoogle(referralCode || undefined);
+      await signInWithGoogle();
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to sign in with Google");
     } finally {
@@ -48,7 +47,7 @@ export default function Login() {
   const handleAppleSignIn = async () => {
     try {
       setLoading(true);
-      await signInWithApple(referralCode || undefined);
+      await signInWithApple();
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to sign in with Apple");
     } finally {
@@ -56,7 +55,7 @@ export default function Login() {
     }
   };
 
-  const handlePasskeySignIn = async () => {
+  const handleLogin = async () => {
     if (!username.trim()) {
       Alert.alert("Validation", "Please enter your username.");
       return;
@@ -66,18 +65,19 @@ export default function Login() {
       return;
     }
     try {
-      setPasskeyLoading(true);
+      setLoginLoading(true);
       await signInWithUsername(username.trim(), password);
       router.replace("/(tabs)");
     } catch (error: any) {
       Alert.alert(
-        "Sign In Failed",
+        "Login Failed",
         error.message || "Invalid username or password.",
       );
     } finally {
-      setPasskeyLoading(false);
+      setLoginLoading(false);
     }
   };
+
   return (
     <>
       <StatusBar
@@ -130,151 +130,35 @@ export default function Login() {
                 <View
                   style={{
                     justifyContent: "flex-end",
-                    paddingBottom: 60,
-                    paddingHorizontal: 20,
+                    paddingBottom: 80,
+                    paddingHorizontal: 25,
                   }}
                 >
-                  {/* Referral Code Input */}
-                  <View style={{ marginBottom: 15 }}>
-                    <Text
-                      style={{
-                        color: "#b6b6b6d0",
-                        fontSize: 14,
-                        marginBottom: 8,
-                        fontFamily: "Montserrat-Regular",
-                      }}
-                    >
-                      Have a referral code? (Optional)
-                    </Text>
-                    <TextInput
-                      style={{
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
-                        padding: 15,
-                        borderRadius: 12,
-                        fontSize: 14,
-                        fontFamily: "Montserrat-Regular",
-                        color: "#000",
-                      }}
-                      placeholder="Enter referral code"
-                      placeholderTextColor="#999"
-                      value={referralCode}
-                      onChangeText={setReferralCode}
-                      autoCapitalize="characters"
-                      maxLength={8}
-                    />
-                  </View>
-
-                  {/* signup with google */}
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: "white",
-                      padding: 15,
-                      borderRadius: 100,
-                      width: "100%",
-                      alignItems: "center",
-                      opacity: loading ? 0.6 : 1,
-                    }}
-                    onPress={handleGoogleSignIn}
-                    disabled={loading}
-                  >
-                    <View
-                      style={{ flexDirection: "row", alignItems: "center" }}
-                    >
-                      {loading ? (
-                        <ActivityIndicator
-                          size="small"
-                          color="#000"
-                          style={{ marginRight: 10 }}
-                        />
-                      ) : (
-                        <Image
-                          source={require("@/assets/logos/google.png")}
-                          style={{ width: 30, height: 30, marginRight: 10 }}
-                        />
-                      )}
-                      <Text
-                        style={{
-                          color: "black",
-                          fontSize: 16,
-                          fontWeight: "bold",
-                          fontFamily: "Montserrat-Regular",
-                        }}
-                      >
-                        Continue with Google
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* signup with apple */}
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: "white",
-                      padding: 15,
-                      borderRadius: 100,
-                      width: "100%",
-                      alignItems: "center",
-                      marginTop: 10,
-                      opacity: loading ? 0.6 : 1,
-                    }}
-                    onPress={handleAppleSignIn}
-                    disabled={loading}
-                  >
-                    <View
-                      style={{ flexDirection: "row", alignItems: "center" }}
-                    >
-                      {loading ? (
-                        <ActivityIndicator
-                          size="small"
-                          color="#000"
-                          style={{ marginRight: 10 }}
-                        />
-                      ) : (
-                        <Image
-                          source={require("@/assets/logos/apple.png")}
-                          style={{ width: 30, height: 30, marginRight: 10 }}
-                        />
-                      )}
-                      <Text
-                        style={{
-                          color: "black",
-                          fontSize: 16,
-                          fontWeight: "bold",
-                          fontFamily: "Montserrat-Regular",
-                        }}
-                      >
-                        Continue with Apple
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* OR Divider */}
-                  <View style={styles.orContainer}>
-                    <View style={styles.line} />
-                    <Text style={styles.orText}> OR </Text>
-                    <View style={styles.line} />
-                  </View>
-
-                  {/* Username input */}
+                  {/* Username Label */}
+                  <Text style={styles.label}>Username</Text>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="Username"
+                    placeholder="Enter your username"
                     placeholderTextColor="#999"
                     value={username}
                     onChangeText={setUsername}
                     autoCapitalize="none"
                   />
 
-                  {/* Password input */}
+                  {/* Password Label */}
+                  <Text style={[styles.label, { marginTop: 20 }]}>
+                    Password
+                  </Text>
                   <View
                     style={{
                       position: "relative",
                       width: "100%",
-                      marginTop: 10,
+                      marginTop: 8,
                     }}
                   >
                     <TextInput
                       style={styles.textInput}
-                      placeholder="Password"
+                      placeholder="Enter your password"
                       placeholderTextColor="#999"
                       value={password}
                       onChangeText={setPassword}
@@ -291,72 +175,96 @@ export default function Login() {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Sign in with passkey (username + password) */}
+                  {/* Login Button */}
                   <TouchableOpacity
-                    style={{
-                      backgroundColor: "#5929d4",
-                      padding: 15,
-                      borderRadius: 100,
-                      width: "100%",
-                      alignItems: "center",
-                      marginTop: 14,
-                      opacity: passkeyLoading ? 0.6 : 1,
-                    }}
-                    onPress={handlePasskeySignIn}
-                    disabled={passkeyLoading}
+                    style={styles.loginButton}
+                    onPress={handleLogin}
+                    disabled={loginLoading}
                   >
                     <View
                       style={{ flexDirection: "row", alignItems: "center" }}
                     >
-                      {passkeyLoading ? (
+                      {loginLoading ? (
                         <ActivityIndicator
                           size="small"
                           color="#fff"
                           style={{ marginRight: 8 }}
                         />
                       ) : null}
-                      <Text
-                        style={{
-                          color: "white",
-                          fontSize: 16,
-                          fontWeight: "bold",
-                          fontFamily: "Poppins-Bold",
-                        }}
-                      >
-                        Sign in with passkey
+                      <Text style={styles.loginButtonText}>Login</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* OR Divider */}
+                  <View style={styles.orContainer}>
+                    <View style={styles.line} />
+                    <Text style={styles.orText}> OR </Text>
+                    <View style={styles.line} />
+                  </View>
+
+                  {/* Continue with Google */}
+                  <TouchableOpacity
+                    style={styles.socialButton}
+                    onPress={handleGoogleSignIn}
+                    disabled={loading}
+                  >
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      {loading ? (
+                        <ActivityIndicator
+                          size="small"
+                          color="#000"
+                          style={{ marginRight: 10 }}
+                        />
+                      ) : (
+                        <Image
+                          source={require("@/assets/logos/google.png")}
+                          style={styles.socialLogo}
+                        />
+                      )}
+                      <Text style={styles.socialButtonText}>
+                        Continue with Google
                       </Text>
                     </View>
                   </TouchableOpacity>
 
-                  {/* already have an account */}
-                  <View
-                    style={{
-                      alignItems: "center",
-                      marginTop: 20,
-                      justifyContent: "center",
-                      flexDirection: "row",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#f0f0f0d0",
-                        fontSize: 14,
-                        fontFamily: "Montserrat-Regular",
-                      }}
+                  {/* Continue with Apple - iOS only */}
+                  {Platform.OS === "ios" && (
+                    <TouchableOpacity
+                      style={[styles.socialButton, { marginTop: 10 }]}
+                      onPress={handleAppleSignIn}
+                      disabled={loading}
                     >
-                      Already have an account ?{" "}
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        {loading ? (
+                          <ActivityIndicator
+                            size="small"
+                            color="#000"
+                            style={{ marginRight: 10 }}
+                          />
+                        ) : (
+                          <Image
+                            source={require("@/assets/logos/apple.png")}
+                            style={styles.socialLogo}
+                          />
+                        )}
+                        <Text style={styles.socialButtonText}>
+                          Continue with Apple
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Sign up link */}
+                  <View style={styles.signupContainer}>
+                    <Text style={styles.signupText}>
+                      Don&apos;t have an account?{" "}
                     </Text>
                     <TouchableOpacity onPress={() => router.push("/signup")}>
-                      <Text
-                        style={{
-                          color: "#454ef3",
-                          fontSize: 14,
-                          fontWeight: "bold",
-                          fontFamily: "Montserrat-Regular",
-                        }}
-                      >
-                        Sign up
-                      </Text>
+                      <Text style={styles.signupLink}>Sign up</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -370,38 +278,77 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
+  label: {
+    color: "#e0e0e0",
+    fontSize: 13,
+    fontFamily: "Montserrat-Regular",
+    marginBottom: 8,
+  },
   textInput: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
-    padding: 15,
+    padding: 16,
     borderRadius: 12,
     fontSize: 14,
     fontFamily: "Montserrat-Regular",
     color: "#000",
     width: "100%",
   },
+  socialButton: {
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 100,
+    width: "100%",
+    alignItems: "center",
+    marginTop: 12,
+  },
+  socialLogo: { width: 30, height: 30, marginRight: 10 },
+  socialButtonText: {
+    color: "black",
+    fontSize: 16,
+    fontWeight: "bold",
+    fontFamily: "Montserrat-Regular",
+  },
   orContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 25,
+    marginVertical: 30,
   },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#5a5a8076",
-  },
-  orCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 10,
-  },
+  line: { flex: 1, height: 1, backgroundColor: "#5a5a8076" },
   orText: {
     color: "#b6b6b6d0",
     fontSize: 12,
     fontWeight: "bold",
     fontFamily: "Poppins-Bold",
+  },
+  loginButton: {
+    backgroundColor: "#5929d4",
+    padding: 16,
+    borderRadius: 100,
+    width: "100%",
+    alignItems: "center",
+    marginTop: 25,
+  },
+  loginButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    fontFamily: "Poppins-Bold",
+  },
+  signupContainer: {
+    alignItems: "center",
+    marginTop: 25,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  signupText: {
+    color: "#f0f0f0d0",
+    fontSize: 14,
+    fontFamily: "Montserrat-Regular",
+  },
+  signupLink: {
+    color: "#454ef3",
+    fontSize: 14,
+    fontWeight: "bold",
+    fontFamily: "Montserrat-Regular",
   },
 });
