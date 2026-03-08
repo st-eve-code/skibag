@@ -358,29 +358,43 @@
       );
 
       // ============================================
-      // REFERRAL CODE HANDLING
+      // GLOBAL VARIABLES
       // ============================================
 
-      // Get referral code from URL query parameter
+      // Get referral code from URL query parameter (available globally)
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get("ref");
 
-      // Pre-fill the referral code field if in URL
-      if (refCode) {
-        document.getElementById("referralCode").value = refCode;
-      }
+      // ============================================
+      // REFERRAL CODE HANDLING
+      // ============================================
+
+      // Wait for DOM to be ready
+      document.addEventListener("DOMContentLoaded", function () {
+        // Pre-fill the referral code field if in URL
+        const referralInput = document.getElementById("referralCode");
+        if (refCode && referralInput) {
+          referralInput.value = refCode;
+          console.log("Referral code pre-filled:", refCode);
+        }
+      });
 
       // ============================================
       // PASSWORD TOGGLE
       // ============================================
 
-      const togglePassword = document.getElementById("togglePassword");
-      const passwordInput = document.getElementById("password");
+      document.addEventListener("DOMContentLoaded", function () {
+        const togglePassword = document.getElementById("togglePassword");
+        const passwordInput = document.getElementById("password");
 
-      togglePassword.addEventListener("click", () => {
-        const type = passwordInput.type === "password" ? "text" : "password";
-        passwordInput.type = type;
-        togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+        if (togglePassword && passwordInput) {
+          togglePassword.addEventListener("click", function () {
+            const type =
+              passwordInput.type === "password" ? "text" : "password";
+            passwordInput.type = type;
+            togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+          });
+        }
       });
 
       // ============================================
