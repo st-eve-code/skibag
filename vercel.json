@@ -1,6 +1,5 @@
 {
   "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "comment": "Fixed 404 issue - using proper expo export for static web build"
+  "installCommand": "npm install"
 }
