@@ -872,7 +872,7 @@ export default function Profile() {
 
   const copyToClipboard = async () => {
     // Use web URL for referral
-    const webUrl = `https://skibag.vercel.app/ref.html?ref=${referralCode}`;
+    const webUrl = `https://skibag.vercel.app/?ref=${referralCode}`;
     await Clipboard.setStringAsync(webUrl);
     Alert.alert("Copied!", "Referral link copied to clipboard");
   };
@@ -881,7 +881,7 @@ export default function Profile() {
   const handleShareReferral = async () => {
     try {
       // Use web URL for referral
-      const webUrl = `https://skibag.vercel.app/ref.html?ref=${referralCode}`;
+      const webUrl = `https://skibag.vercel.app/?ref=${referralCode}`;
 
       await Share.share({
         message: `Join me on Skibag and get bonus coins! Use my referral link: ${webUrl}`,
@@ -1343,7 +1343,7 @@ export default function Profile() {
                       onPress={copyToClipboard}
                     >
                       <Text style={styles.referralLinkText} numberOfLines={1}>
-                        https://skibag.vercel.app/ref.html?ref={referralCode}
+                        https://skibag.vercel.app/?ref={referralCode}
                       </Text>
                       <Ionicons
                         name="copy-outline"

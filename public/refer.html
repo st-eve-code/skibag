@@ -59,9 +59,14 @@
         color: #ccc;
       }
 
+      .input-wrapper {
+        position: relative;
+      }
+
       input {
         width: 100%;
         padding: 14px 16px;
+        padding-right: 50px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         background: rgba(255, 255, 255, 0.05);
@@ -79,6 +84,29 @@
         color: #666;
       }
 
+      input[readonly] {
+        background: rgba(59, 72, 185, 0.2);
+        border-color: #3b48b9;
+        color: #818cf8;
+      }
+
+      .eye-btn {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        font-size: 20px;
+        padding: 4px;
+      }
+
+      .eye-btn:hover {
+        color: #aaa;
+      }
+
       .btn {
         width: 100%;
         background: #3b48b9;
@@ -92,6 +120,7 @@
         transition:
           transform 0.2s,
           background 0.2s;
+        margin-top: 10px;
       }
 
       .btn:hover {
@@ -223,14 +252,14 @@
 
         <form id="form">
           <div class="form-group">
-            <label for="name">Full Name</label>
+            <label for="username">Username</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              placeholder="Enter your name"
+              id="username"
+              name="username"
+              placeholder="Choose a username"
               required
-              autocomplete="name"
+              autocomplete="username"
             />
           </div>
 
@@ -248,14 +277,30 @@
 
           <div class="form-group">
             <label for="password">Password</label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Create a password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+              />
+              <button type="button" class="eye-btn" id="togglePassword">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="referralCode">Referral ID</label>
             <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Create a password"
-              required
-              minlength="6"
-              autocomplete="new-password"
+              type="text"
+              id="referralCode"
+              name="referralCode"
+              placeholder="Enter referral code (optional)"
+              readonly
             />
           </div>
 
@@ -263,18 +308,6 @@
             Create Account
           </button>
         </form>
-
-        <p
-          style="
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 13px;
-          "
-        >
-          Already have an account?
-          <a href="/login" style="color: #818cf8">Sign in</a>
-        </p>
       </div>
 
       <!-- Success Screen -->
@@ -313,14 +346,6 @@
         <p style="margin-top: 20px; font-size: 14px; color: #666">
           Use the same email and password you just created to log in to the app.
         </p>
-
-        <a
-          href="/login"
-          class="btn"
-          style="margin-top: 20px; text-decoration: none; display: inline-block"
-        >
-          Go to Login
-        </a>
       </div>
     </div>
 
@@ -332,12 +357,10 @@
       // CONFIGURATION
       // ============================================
 
-      // Supabase configuration - UPDATE THESE VALUES
       const SUPABASE_URL = "https://bvvosplyvnkdtsiqokoq.supabase.co";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2dm9zcGx5dm5rZHRzaXFva29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3OTMzMzIsImV4cCI6MjA4ODM2OTMzMn0.Wdjrim4gb5aunY8AUFtQEesFbFJvRwKqNczV4nexT1w";
 
-      // Initialize Supabase client
       const supabase = window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_ANON_KEY,
@@ -351,17 +374,27 @@
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get("ref");
 
-      // Store referral code in localStorage for persistence
+      // Pre-fill the referral code field
       if (refCode) {
+        document.getElementById("referralCode").value = refCode;
         localStorage.setItem("skibag_referral_code", refCode);
-        console.log("Referral code captured:", refCode);
-      } else {
-        // Check if there's a stored referral code from a previous visit
-        const storedRef = localStorage.getItem("skibag_referral_code");
-        if (storedRef) {
-          console.log("Using stored referral code:", storedRef);
-        }
       }
+
+      // ============================================
+      // PASSWORD TOGGLE
+      // ============================================
+
+      const togglePassword = document.getElementById("togglePassword");
+      const passwordInput = document.getElementById("password");
+
+      togglePassword.addEventListener("click", () => {
+        const type =
+          passwordInput.getAttribute("type") === "password"
+            ? "text"
+            : "password";
+        passwordInput.setAttribute("type", type);
+        togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+      });
 
       // ============================================
       // FORM HANDLING
@@ -376,37 +409,33 @@
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // Get form values
-        const name = document.getElementById("name").value.trim();
+        const username = document.getElementById("username").value.trim();
         const email = document
           .getElementById("email")
           .value.trim()
           .toLowerCase();
         const password = document.getElementById("password").value;
 
-        // Get referral code (from URL or localStorage)
+        // Get referral code from URL or localStorage
         const referralCode =
           urlParams.get("ref") || localStorage.getItem("skibag_referral_code");
 
-        // Show loading state
         submitBtn.disabled = true;
         submitBtn.innerHTML =
           '<span class="spinner"></span>Creating account...';
         errorDiv.style.display = "none";
 
         try {
-          // ============================================
-          // SIGN UP WITH SUPABASE AUTH
-          // ============================================
-
+          // Sign up with Supabase Auth
           const { data: authData, error: authError } =
             await supabase.auth.signUp({
               email: email,
               password: password,
               options: {
                 data: {
-                  full_name: name,
+                  username: username,
                   referral_code: referralCode || null,
+                  referred_by: referralCode || null,
                 },
               },
             });
@@ -416,24 +445,27 @@
           }
 
           if (authData.user) {
-            // ============================================
-            // STORE REFERRAL IN DATABASE
-            // If there's a referral code, record it in the referrals table
-            // ============================================
-
+            // Update the user's profile with referral info in users table
             if (referralCode) {
               try {
-                // Record the referral using the referrer's code
-                // The referrer's code maps to their user_id in the users table
+                // Update the new user's record with referral info
+                await supabase
+                  .from("users")
+                  .update({
+                    referred_by: referralCode,
+                    referral_code: referralCode,
+                  })
+                  .eq("id", authData.user.id);
+
+                // Record the referral for the referrer
                 await supabase.from("referrals").insert({
                   referrer_code: referralCode,
                   referred_user_id: authData.user.id,
                   referred_email: email,
-                  referred_name: name,
+                  referred_name: username,
                   status: "completed",
                 });
               } catch (referralError) {
-                // Log but don't fail - the account is already created
                 console.log(
                   "Referral recording failed:",
                   referralError.message,
@@ -441,16 +473,12 @@
               }
             }
 
-            // Show success screen
             showSuccessScreen(referralCode);
           }
         } catch (error) {
-          // Show error message
           errorDiv.textContent =
             error.message || "An error occurred. Please try again.";
           errorDiv.style.display = "block";
-
-          // Reset button
           submitBtn.disabled = false;
           submitBtn.textContent = "Create Account";
         }
@@ -460,7 +488,6 @@
         signupForm.style.display = "none";
         successScreen.style.display = "block";
 
-        // Show referral code if available
         if (referralCode) {
           document.getElementById("refCodeDisplay").style.display = "block";
           document.getElementById("displayedRefCode").textContent =
@@ -469,29 +496,6 @@
           document.getElementById("refCodeDisplay").style.display = "none";
         }
       }
-
-      // ============================================
-      // ENVIRONMENT DETECTION (DEV vs PROD)
-      // ============================================
-
-      // Check if we're in development or production
-      const isDev =
-        window.location.hostname.includes("localhost") ||
-        window.location.hostname.includes("vercel.dev");
-
-      // Update download buttons based on environment
-      if (isDev) {
-        // Development: Show Expo Go instructions
-        document.querySelector(".download-buttons").innerHTML = `
-          <a href="https://expo.dev/go" target="_blank" class="download-btn">
-            📦 Expo Go
-          </a>
-          <a href="https://docs.expo.dev/get-started/create-a-project/" target="_blank" class="download-btn">
-            📖 Dev Docs
-          </a>
-        `;
-      }
-      // Production: Keep App Store / Play Store links (already in HTML)
     </script>
   </body>
 </html>
