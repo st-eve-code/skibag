@@ -287,13 +287,14 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group" id="referralGroup">
             <label for="referralCode">Referral ID</label>
             <input
               type="text"
               id="referralCode"
               name="referralCode"
               placeholder="Enter referral code (optional)"
+              disabled
             />
           </div>
 
@@ -371,11 +372,19 @@
 
       // Wait for DOM to be ready
       document.addEventListener("DOMContentLoaded", function () {
-        // Pre-fill the referral code field if in URL
         const referralInput = document.getElementById("referralCode");
+        const referralGroup = document.getElementById("referralGroup");
+
+        // If there's a referral code in the URL, pre-fill it and make it read-only
         if (refCode && referralInput) {
           referralInput.value = refCode;
+          // Make the field visually indicate it's locked
+          referralInput.style.backgroundColor = "rgba(59, 72, 185, 0.3)";
+          referralInput.style.borderColor = "#3b48b9";
           console.log("Referral code pre-filled:", refCode);
+        } else if (referralGroup) {
+          // If no referral code in URL, hide the entire field
+          referralGroup.style.display = "none";
         }
       });
 
