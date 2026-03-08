@@ -59,14 +59,9 @@
         color: #ccc;
       }
 
-      .input-wrapper {
-        position: relative;
-      }
-
       input {
         width: 100%;
         padding: 14px 16px;
-        padding-right: 50px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         background: rgba(255, 255, 255, 0.05);
@@ -84,13 +79,15 @@
         color: #666;
       }
 
-      input[readonly] {
-        background: rgba(59, 72, 185, 0.2);
-        border-color: #3b48b9;
-        color: #818cf8;
+      .password-wrapper {
+        position: relative;
       }
 
-      .eye-btn {
+      .password-wrapper input {
+        padding-right: 50px;
+      }
+
+      .toggle-password {
         position: absolute;
         right: 14px;
         top: 50%;
@@ -99,11 +96,11 @@
         border: none;
         color: #666;
         cursor: pointer;
-        font-size: 20px;
+        font-size: 18px;
         padding: 4px;
       }
 
-      .eye-btn:hover {
+      .toggle-password:hover {
         color: #aaa;
       }
 
@@ -170,7 +167,7 @@
       .ref-code-display {
         background: rgba(59, 72, 185, 0.2);
         border: 1px solid #3b48b9;
-        padding: 12px;
+        padding: 16px;
         border-radius: 8px;
         margin-bottom: 24px;
         text-align: center;
@@ -179,6 +176,7 @@
       .ref-code-display span {
         color: #818cf8;
         font-weight: 600;
+        font-size: 20px;
       }
 
       .download-section {
@@ -215,10 +213,6 @@
 
       .download-btn:hover {
         transform: scale(1.05);
-      }
-
-      .hidden {
-        display: none;
       }
 
       .spinner {
@@ -277,15 +271,20 @@
 
           <div class="form-group">
             <label for="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Create a password"
-              required
-              minlength="6"
-              autocomplete="new-password"
-            />
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Create a password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+              />
+              <button type="button" class="toggle-password" id="togglePassword">
+                👁️
+              </button>
+            </div>
           </div>
 
           <div class="form-group">
@@ -310,12 +309,14 @@
         <h2>Account Created!</h2>
 
         <div class="ref-code-display" id="refCodeDisplay">
-          <p style="margin-bottom: 8px">Referral bonus applied!</p>
+          <p style="margin-bottom: 8px">Your Referral Code:</p>
           <span id="displayedRefCode"></span>
         </div>
 
+        <p>Share this code with friends to earn rewards!</p>
+
         <p>Your account has been created successfully.</p>
-        <p>Download the Skibag app to start playing and claim your rewards!</p>
+        <p>Download the Skibag app to start playing!</p>
 
         <div class="download-section">
           <h3>📱 Download the App</h3>
@@ -336,10 +337,6 @@
             </a>
           </div>
         </div>
-
-        <p style="margin-top: 20px; font-size: 14px; color: #666">
-          Use the same email and password you just created to log in to the app.
-        </p>
       </div>
     </div>
 
@@ -367,13 +364,36 @@
       // Get referral code from URL query parameter
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get("ref");
-      console.log("URL:", window.location.href);
-      console.log("refCode:", refCode);
 
-      // Pre-fill the referral code field
+      // Pre-fill the referral code field if in URL
       if (refCode) {
         document.getElementById("referralCode").value = refCode;
-        localStorage.setItem("skibag_referral_code", refCode);
+      }
+
+      // ============================================
+      // PASSWORD TOGGLE
+      // ============================================
+
+      const togglePassword = document.getElementById("togglePassword");
+      const passwordInput = document.getElementById("password");
+
+      togglePassword.addEventListener("click", () => {
+        const type = passwordInput.type === "password" ? "text" : "password";
+        passwordInput.type = type;
+        togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+      });
+
+      // ============================================
+      // GENERATE REFERRAL CODE
+      // ============================================
+
+      function generateReferralCode() {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let code = "";
+        for (let i = 0; i < 8; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
       }
 
       // ============================================
@@ -396,9 +416,10 @@
           .toLowerCase();
         const password = document.getElementById("password").value;
 
-        // Get referral code from URL or localStorage
+        // Get referral code from URL or form input
         const referralCode =
-          urlParams.get("ref") || localStorage.getItem("skibag_referral_code");
+          urlParams.get("ref") ||
+          document.getElementById("referralCode").value.trim();
 
         submitBtn.disabled = true;
         submitBtn.innerHTML =
@@ -414,8 +435,6 @@
               options: {
                 data: {
                   username: username,
-                  referral_code: referralCode || null,
-                  referred_by: referralCode || null,
                 },
               },
             });
@@ -425,26 +444,47 @@
           }
 
           if (authData.user) {
-            // Update the user's profile with referral info in users table
+            // Generate a static referral code for this user
+            const myReferralCode = generateReferralCode();
+
+            // Create user profile with referral info
+            await supabase.from("users").insert({
+              id: authData.user.id,
+              email: email,
+              username: username,
+              referral_code: myReferralCode,
+              referred_by: referralCode || null,
+              coins: 0,
+              points: 0,
+              created_at: new Date().toISOString(),
+            });
+
+            // If there was a referral code, record the referral for the referrer
             if (referralCode) {
               try {
-                // Update the new user's record with referral info
-                await supabase
+                // Find the referrer's user ID from their referral code
+                const { data: referrerData } = await supabase
                   .from("users")
-                  .update({
-                    referred_by: referralCode,
-                    referral_code: referralCode,
-                  })
-                  .eq("id", authData.user.id);
+                  .select("id")
+                  .eq("referral_code", referralCode)
+                  .single();
 
-                // Record the referral for the referrer
-                await supabase.from("referrals").insert({
-                  referrer_code: referralCode,
-                  referred_user_id: authData.user.id,
-                  referred_email: email,
-                  referred_name: username,
-                  status: "completed",
-                });
+                if (referrerData) {
+                  // Record the referral
+                  await supabase.from("referrals").insert({
+                    referrer_code: referralCode,
+                    referred_user_id: authData.user.id,
+                    referred_email: email,
+                    referred_name: username,
+                    status: "completed",
+                  });
+
+                  // Give bonus to referrer (optional - you can customize this)
+                  await supabase
+                    .from("users")
+                    .update({ points: 100 })
+                    .eq("id", referrerData.id);
+                }
               } catch (referralError) {
                 console.log(
                   "Referral recording failed:",
@@ -453,7 +493,8 @@
               }
             }
 
-            showSuccessScreen(referralCode);
+            // Show success screen with user's new referral code
+            showSuccessScreen(myReferralCode);
           }
         } catch (error) {
           errorDiv.textContent =
@@ -464,17 +505,13 @@
         }
       });
 
-      function showSuccessScreen(referralCode) {
+      function showSuccessScreen(myReferralCode) {
         signupForm.style.display = "none";
         successScreen.style.display = "block";
 
-        if (referralCode) {
-          document.getElementById("refCodeDisplay").style.display = "block";
-          document.getElementById("displayedRefCode").textContent =
-            referralCode;
-        } else {
-          document.getElementById("refCodeDisplay").style.display = "none";
-        }
+        // Show user's new referral code
+        document.getElementById("displayedRefCode").textContent =
+          myReferralCode;
       }
     </script>
   </body>
