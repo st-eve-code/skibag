@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Skibag - Join Now</title>
+    <title>Join Skibag - Get Started</title>
     <style>
       * {
         margin: 0;
@@ -20,46 +20,188 @@
         align-items: center;
         justify-content: center;
         color: white;
-        text-align: center;
         padding: 20px;
       }
 
       .container {
-        max-width: 400px;
+        max-width: 420px;
+        width: 100%;
       }
 
       .logo {
-        font-size: 48px;
-        margin-bottom: 20px;
+        font-size: 56px;
+        text-align: center;
+        margin-bottom: 10px;
       }
 
       h1 {
-        font-size: 28px;
-        margin-bottom: 16px;
+        font-size: 32px;
+        text-align: center;
+        margin-bottom: 8px;
         color: #fff;
       }
 
-      p {
-        font-size: 16px;
+      .subtitle {
+        text-align: center;
         color: #aaa;
         margin-bottom: 30px;
-        line-height: 1.5;
+        font-size: 16px;
       }
 
-      .loading {
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #ccc;
+      }
+
+      input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        font-size: 16px;
+        transition: border-color 0.2s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #3b48b9;
+      }
+
+      input::placeholder {
+        color: #666;
+      }
+
+      .btn {
+        width: 100%;
+        background: #3b48b9;
+        color: white;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          background 0.2s;
+      }
+
+      .btn:hover {
+        transform: scale(1.02);
+        background: #4a56c9;
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .error {
+        background: rgba(255, 107, 107, 0.1);
+        border: 1px solid #ff6b6b;
+        color: #ff6b6b;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: none;
+      }
+
+      .success {
+        text-align: center;
+        display: none;
+      }
+
+      .success-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+      }
+
+      .success h2 {
+        font-size: 28px;
+        margin-bottom: 16px;
+        color: #4ade80;
+      }
+
+      .success p {
+        color: #aaa;
+        margin-bottom: 12px;
+        line-height: 1.6;
+      }
+
+      .ref-code-display {
+        background: rgba(59, 72, 185, 0.2);
+        border: 1px solid #3b48b9;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        text-align: center;
+      }
+
+      .ref-code-display span {
+        color: #818cf8;
+        font-weight: 600;
+      }
+
+      .download-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 24px;
+        margin-top: 24px;
+      }
+
+      .download-section h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+      }
+
+      .download-buttons {
         display: flex;
-        flex-direction: column;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .download-btn {
+        display: inline-flex;
         align-items: center;
-        gap: 20px;
+        gap: 8px;
+        background: #222;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: transform 0.2s;
+      }
+
+      .download-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .hidden {
+        display: none;
       }
 
       .spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255, 255, 255, 0.1);
-        border-top-color: #3b48b9;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
         border-radius: 50%;
-        animation: spin 1s linear infinite;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
       }
 
       @keyframes spin {
@@ -67,95 +209,289 @@
           transform: rotate(360deg);
         }
       }
-
-      .btn {
-        display: inline-block;
-        background: #3b48b9;
-        color: white;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 600;
-        margin-top: 20px;
-        transition: transform 0.2s;
-      }
-
-      .btn:hover {
-        transform: scale(1.05);
-      }
-
-      .error {
-        color: #ff6b6b;
-        margin-top: 20px;
-      }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="logo">🎮</div>
-      <h1>Skibag</h1>
+      <!-- Signup Form -->
+      <div id="signupForm">
+        <div class="logo">🎮</div>
+        <h1>Join Skibag</h1>
+        <p class="subtitle">Create your account and start playing</p>
 
-      <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Opening app...</p>
+        <div class="error" id="error"></div>
+
+        <form id="form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Enter your name"
+              required
+              autocomplete="name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Enter your email"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Create a password"
+              required
+              minlength="6"
+              autocomplete="new-password"
+            />
+          </div>
+
+          <button type="submit" class="btn" id="submitBtn">
+            Create Account
+          </button>
+        </form>
+
+        <p
+          style="
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 13px;
+          "
+        >
+          Already have an account?
+          <a href="/login" style="color: #818cf8">Sign in</a>
+        </p>
       </div>
 
-      <div class="error" id="error" style="display: none">
-        <p>
-          Unable to open the app. Please make sure the app is installed on your
-          device.
+      <!-- Success Screen -->
+      <div id="successScreen" class="success">
+        <div class="success-icon">✅</div>
+        <h2>Account Created!</h2>
+
+        <div class="ref-code-display" id="refCodeDisplay">
+          <p style="margin-bottom: 8px">Referral bonus applied!</p>
+          <span id="displayedRefCode"></span>
+        </div>
+
+        <p>Your account has been created successfully.</p>
+        <p>Download the Skibag app to start playing and claim your rewards!</p>
+
+        <div class="download-section">
+          <h3>📱 Download the App</h3>
+          <div class="download-buttons">
+            <a
+              href="https://apps.apple.com"
+              target="_blank"
+              class="download-btn"
+            >
+              🍎 App Store
+            </a>
+            <a
+              href="https://play.google.com"
+              target="_blank"
+              class="download-btn"
+            >
+              🤖 Play Store
+            </a>
+          </div>
+        </div>
+
+        <p style="margin-top: 20px; font-size: 14px; color: #666">
+          Use the same email and password you just created to log in to the app.
         </p>
-        <a href="#" class="btn" id="manualBtn">Open App</a>
+
+        <a
+          href="/login"
+          class="btn"
+          style="margin-top: 20px; text-decoration: none; display: inline-block"
+        >
+          Go to Login
+        </a>
       </div>
     </div>
 
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
-      // Get referral code from URL
+      // ============================================
+      // CONFIGURATION
+      // ============================================
+
+      // Supabase configuration - UPDATE THESE VALUES
+      const SUPABASE_URL = "https://bvvosplyvnkdtsiqokoq.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2dm9zcGx5dm5rZHRzaXFva29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3OTMzMzIsImV4cCI6MjA4ODM2OTMzMn0.Wdjrim4gb5aunY8AUFtQEesFbFJvRwKqNczV4nexT1w";
+
+      // Initialize Supabase client
+      const supabase = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+      );
+
+      // ============================================
+      // REFERRAL CODE HANDLING
+      // ============================================
+
+      // Get referral code from URL query parameter
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get("ref");
 
-      // Custom URL scheme for your app
-      const appScheme = "skibag";
-
-      // Build the deep link with referral code
-      let deepLink = appScheme + "://signup";
+      // Store referral code in localStorage for persistence
       if (refCode) {
-        deepLink += "?ref=" + encodeURIComponent(refCode);
+        localStorage.setItem("skibag_referral_code", refCode);
+        console.log("Referral code captured:", refCode);
+      } else {
+        // Check if there's a stored referral code from a previous visit
+        const storedRef = localStorage.getItem("skibag_referral_code");
+        if (storedRef) {
+          console.log("Using stored referral code:", storedRef);
+        }
       }
 
-      // Try to open the app
-      function tryOpenApp() {
-        // For iOS (universal links)
-        const universalLink =
-          "https://skibag.vercel.app/ref.html" +
-          (refCode ? "?ref=" + encodeURIComponent(refCode) : "");
+      // ============================================
+      // FORM HANDLING
+      // ============================================
 
-        // Try opening the app
-        window.location.href = deepLink;
+      const form = document.getElementById("form");
+      const submitBtn = document.getElementById("submitBtn");
+      const errorDiv = document.getElementById("error");
+      const signupForm = document.getElementById("signupForm");
+      const successScreen = document.getElementById("successScreen");
 
-        // Show fallback after a delay
-        setTimeout(function () {
-          // Check if we're still on this page
-          if (document.visibilityState === "visible") {
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("error").style.display = "block";
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-            // Try universal link as fallback
-            document.getElementById("manualBtn").href = universalLink;
+        // Get form values
+        const name = document.getElementById("name").value.trim();
+        const email = document
+          .getElementById("email")
+          .value.trim()
+          .toLowerCase();
+        const password = document.getElementById("password").value;
+
+        // Get referral code (from URL or localStorage)
+        const referralCode =
+          urlParams.get("ref") || localStorage.getItem("skibag_referral_code");
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML =
+          '<span class="spinner"></span>Creating account...';
+        errorDiv.style.display = "none";
+
+        try {
+          // ============================================
+          // SIGN UP WITH SUPABASE AUTH
+          // ============================================
+
+          const { data: authData, error: authError } =
+            await supabase.auth.signUp({
+              email: email,
+              password: password,
+              options: {
+                data: {
+                  full_name: name,
+                  referral_code: referralCode || null,
+                },
+              },
+            });
+
+          if (authError) {
+            throw authError;
           }
-        }, 2000);
-      }
 
-      // Start trying to open the app
-      tryOpenApp();
+          if (authData.user) {
+            // ============================================
+            // STORE REFERRAL IN DATABASE
+            // If there's a referral code, record it in the referrals table
+            // ============================================
 
-      // Also listen for visibility change to detect if app was opened
-      document.addEventListener("visibilitychange", function () {
-        if (document.visibilityState === "hidden") {
-          // User switched to app - we can hide this page
-          document.body.innerHTML = "";
+            if (referralCode) {
+              try {
+                // Record the referral using the referrer's code
+                // The referrer's code maps to their user_id in the users table
+                await supabase.from("referrals").insert({
+                  referrer_code: referralCode,
+                  referred_user_id: authData.user.id,
+                  referred_email: email,
+                  referred_name: name,
+                  status: "completed",
+                });
+              } catch (referralError) {
+                // Log but don't fail - the account is already created
+                console.log(
+                  "Referral recording failed:",
+                  referralError.message,
+                );
+              }
+            }
+
+            // Show success screen
+            showSuccessScreen(referralCode);
+          }
+        } catch (error) {
+          // Show error message
+          errorDiv.textContent =
+            error.message || "An error occurred. Please try again.";
+          errorDiv.style.display = "block";
+
+          // Reset button
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Create Account";
         }
       });
+
+      function showSuccessScreen(referralCode) {
+        signupForm.style.display = "none";
+        successScreen.style.display = "block";
+
+        // Show referral code if available
+        if (referralCode) {
+          document.getElementById("refCodeDisplay").style.display = "block";
+          document.getElementById("displayedRefCode").textContent =
+            referralCode;
+        } else {
+          document.getElementById("refCodeDisplay").style.display = "none";
+        }
+      }
+
+      // ============================================
+      // ENVIRONMENT DETECTION (DEV vs PROD)
+      // ============================================
+
+      // Check if we're in development or production
+      const isDev =
+        window.location.hostname.includes("localhost") ||
+        window.location.hostname.includes("vercel.dev");
+
+      // Update download buttons based on environment
+      if (isDev) {
+        // Development: Show Expo Go instructions
+        document.querySelector(".download-buttons").innerHTML = `
+          <a href="https://expo.dev/go" target="_blank" class="download-btn">
+            📦 Expo Go
+          </a>
+          <a href="https://docs.expo.dev/get-started/create-a-project/" target="_blank" class="download-btn">
+            📖 Dev Docs
+          </a>
+        `;
+      }
+      // Production: Keep App Store / Play Store links (already in HTML)
     </script>
   </body>
 </html>
