@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext, useState } from "react";
 
 interface UserData {
+  id: string;
+  username: string;
+  email?: string;
   avatarUri: string | null;
   rank: string;
   score: number;
@@ -15,14 +18,18 @@ interface UserContextType {
 }
 
 const defaultUserData: UserData = {
+  id: "",
+  username: "Player",
   avatarUri: null,
-  rank: 'beginner',
+  rank: "beginner",
   score: 12,
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [userData, setUserData] = useState<UserData>(defaultUserData);
 
   const updateAvatar = (uri: string | null) => {
@@ -38,7 +45,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <UserContext.Provider value={{ userData, setUserData, updateAvatar, updateRank, updateScore }}>
+    <UserContext.Provider
+      value={{ userData, setUserData, updateAvatar, updateRank, updateScore }}
+    >
       {children}
     </UserContext.Provider>
   );
@@ -47,8 +56,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useUser = (): UserContextType => {
   const context = useContext(UserContext);
   if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error("useUser must be used within a UserProvider");
   }
   return context;
 };
-

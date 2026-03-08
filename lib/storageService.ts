@@ -5,23 +5,37 @@ const BUCKET = "avatars";
 /**
  * Upload profile picture to Supabase Storage.
  * @param uri - Local file URI (from expo-image-picker)
+ * @param userId - User ID (required for custom auth)
  * @returns Public URL of the uploaded image
  */
-export const uploadProfilePicture = async (uri: string): Promise<string> => {
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("User not authenticated");
+export const uploadProfilePicture = async (
+  uri: string,
+  userId: string,
+): Promise<string> => {
+  if (!userId) throw new Error("User ID is required");
 
-  const uid = userData.user.id;
+  const uid = userId;
   const filename = `profile_${uid}_${Date.now()}.jpg`;
   const path = `${uid}/${filename}`;
 
-  // Fetch the file as a blob
-  const response = await fetch(uri);
-  const blob = await response.blob();
+  // Create form data for React Native compatibility
+  const formData = new FormData();
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+  // Append the file with proper type
+  const fileExtension = uri.split(".").pop() || "jpg";
+  const mimeType = fileExtension === "png" ? "image/png" : "image/jpeg";
+
+  // @ts-ignore - React Native FormData append
+  formData.append("file", {
+    uri: uri,
+    name: filename,
+    type: mimeType,
+  });
+
+  const { error } = await supabase.storage.from(BUCKET).upload(path, formData, {
+    contentType: mimeType,
+    upsert: true,
+  });
 
   if (error) throw new Error(`Upload failed: ${error.message}`);
 
@@ -55,16 +69,17 @@ export const deleteProfilePicture = async (
  * Upload game screenshot or media to Supabase Storage.
  * @param uri - Local file URI
  * @param gameId - Game identifier
+ * @param userId - User ID (required for custom auth)
  * @returns Public URL of the uploaded image
  */
 export const uploadGameMedia = async (
   uri: string,
   gameId: string,
+  userId: string,
 ): Promise<string> => {
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("User not authenticated");
+  if (!userId) throw new Error("User ID is required");
 
-  const uid = userData.user.id;
+  const uid = userId;
   const filename = `game_${gameId}_${uid}_${Date.now()}.jpg`;
   const path = `game_media/${filename}`;
 

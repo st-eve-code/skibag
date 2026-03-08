@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skibag - Join Now</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 400px;
+      }
+
+      .logo {
+        font-size: 48px;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 28px;
+        margin-bottom: 16px;
+        color: #fff;
+      }
+
+      p {
+        font-size: 16px;
+        color: #aaa;
+        margin-bottom: 30px;
+        line-height: 1.5;
+      }
+
+      .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: #3b48b9;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .btn {
+        display: inline-block;
+        background: #3b48b9;
+        color: white;
+        padding: 14px 28px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 20px;
+        transition: transform 0.2s;
+      }
+
+      .btn:hover {
+        transform: scale(1.05);
+      }
+
+      .error {
+        color: #ff6b6b;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">🎮</div>
+      <h1>Skibag</h1>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Opening app...</p>
+      </div>
+
+      <div class="error" id="error" style="display: none">
+        <p>
+          Unable to open the app. Please make sure the app is installed on your
+          device.
+        </p>
+        <a href="#" class="btn" id="manualBtn">Open App</a>
+      </div>
+    </div>
+
+    <script>
+      // Get referral code from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get("ref");
+
+      // Custom URL scheme for your app
+      const appScheme = "skibag";
+
+      // Build the deep link with referral code
+      let deepLink = appScheme + "://signup";
+      if (refCode) {
+        deepLink += "?ref=" + encodeURIComponent(refCode);
+      }
+
+      // Try to open the app
+      function tryOpenApp() {
+        // For iOS (universal links)
+        const universalLink =
+          "https://skibag.vercel.app/ref.html" +
+          (refCode ? "?ref=" + encodeURIComponent(refCode) : "");
+
+        // Try opening the app
+        window.location.href = deepLink;
+
+        // Show fallback after a delay
+        setTimeout(function () {
+          // Check if we're still on this page
+          if (document.visibilityState === "visible") {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("error").style.display = "block";
+
+            // Try universal link as fallback
+            document.getElementById("manualBtn").href = universalLink;
+          }
+        }, 2000);
+      }
+
+      // Start trying to open the app
+      tryOpenApp();
+
+      // Also listen for visibility change to detect if app was opened
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden") {
+          // User switched to app - we can hide this page
+          document.body.innerHTML = "";
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -766,12 +766,21 @@
 //     color: "#ffffff", fontSize: fontScale(14), marginTop: hp(2), fontWeight: "500",
 //   },
 // });
+
+import { submitFeedback } from "@/lib/firestoreService";
 import { fontScale, hp, wp } from "@/lib/responsive";
+import { uploadProfilePicture } from "@/lib/storageService";
+import {
+  signOut as customSignOut,
+  deleteUserAccount,
+  getCurrentUser,
+  getUserAvatar,
+  updateUserAvatar,
+} from "@/lib/supabaseAuthService";
 import { useUser } from "@/lib/userContext";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
-import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -815,31 +824,34 @@ export default function Profile() {
   const [showConversionModal, setShowConversionModal] = useState(false);
   const [pointsToConvert, setPointsToConvert] = useState("");
 
-  // ─── Load user profile from Firestore ────────────────────────────────────
+  // ─── Load user profile from Supabase ───────────────────────────────────
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        // TODO: Implement getUserProfile with your backend
-        // const profile = await yourBackend.getUserProfile();
+        // Get current user with referral code
+        const user = await getCurrentUser();
+        if (user?.referral_code) {
+          setReferralCode(user.referral_code);
+        } else {
+          // Generate temporary referral code if not available
+          const tempCode = generateTempReferralCode();
+          setReferralCode(tempCode);
+        }
 
-        // Generate temporary referral code for now
-        const tempCode = generateTempReferralCode();
-        setReferralCode(tempCode);
-
-        // TODO: Implement getReferralCount with your backend
-        // const count = await yourBackend.getReferralCount();
         setReferralCount(0);
-
-        // TODO: Implement getUserPointsAndCoins with your backend
-        // const { referralPoints: points, coins: userCoins } = await yourBackend.getUserPointsAndCoins();
         setReferralPoints(0);
         setCoins(0);
 
-        // TODO: Load avatar from backend
-        // if (profile?.avatarUri) {
-        //   setAvatarUri(profile.avatarUri);
-        //   updateAvatar(profile.avatarUri);
-        // }
+        // Load avatar from Supabase
+        try {
+          const avatarUrl = await getUserAvatar();
+          if (avatarUrl) {
+            setAvatarUri(avatarUrl);
+            updateAvatar(avatarUrl);
+          }
+        } catch (avatarError) {
+          console.log("Could not load avatar from Supabase:", avatarError);
+        }
       } catch (e) {
         console.error("Error loading profile:", e);
         const fallbackCode = generateTempReferralCode();
@@ -859,19 +871,20 @@ export default function Profile() {
   };
 
   const copyToClipboard = async () => {
-    await Clipboard.setStringAsync(referralCode);
-    Alert.alert("Copied!", "Referral code copied to clipboard");
+    // Use web URL for referral
+    const webUrl = `https://skibag.vercel.app/ref.html?ref=${referralCode}`;
+    await Clipboard.setStringAsync(webUrl);
+    Alert.alert("Copied!", "Referral link copied to clipboard");
   };
 
   // ─── Share Referral Link ──────────────────────────────────────────────────
   const handleShareReferral = async () => {
     try {
-      const link = Linking.createURL("signup", {
-        queryParams: { ref: referralCode },
-      });
+      // Use web URL for referral
+      const webUrl = `https://skibag.vercel.app/ref.html?ref=${referralCode}`;
 
       await Share.share({
-        message: `Join me on this game and get bonus coins! Use my referral link: ${link}`,
+        message: `Join me on Skibag and get bonus coins! Use my referral link: ${webUrl}`,
       });
     } catch (e: any) {
       Alert.alert("Error", e.message);
@@ -888,7 +901,13 @@ export default function Profile() {
 
   // ─── Submit Feedback ──────────────────────────────────────────────────────
   const handleFeedbackSubmit = async () => {
-    if (!feedback.trim()) return;
+    if (!feedback.trim()) {
+      Alert.alert(
+        "Empty Feedback",
+        "Please enter your feedback before submitting.",
+      );
+      return;
+    }
     if (rating === 0) {
       Alert.alert(
         "Rating Required",
@@ -899,14 +918,18 @@ export default function Profile() {
     try {
       setSubmittingFeedback(true);
 
-      // TODO: Implement submitFeedback with your backend
-      // await yourBackend.submitFeedback(feedback, rating);
+      // Determine category based on rating
+      const category =
+        rating >= 4 ? "feature" : rating <= 2 ? "bug" : "general";
 
-      Alert.alert("Info", "Feedback submission needs to be implemented");
+      // Submit feedback to Supabase
+      await submitFeedback(feedback, rating, category);
+
+      Alert.alert("Thank you!", "Your feedback has been submitted.");
       setFeedback("");
       setRating(0);
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      Alert.alert("Error", e.message || "Failed to submit feedback");
     } finally {
       setSubmittingFeedback(false);
     }
@@ -921,10 +944,11 @@ export default function Profile() {
         style: "destructive",
         onPress: async () => {
           try {
-            // TODO: Implement signOut with your backend
-            // await yourBackend.signOut();
+            // Sign out from custom auth
+            await customSignOut();
 
-            router.replace("/(auth)");
+            // Navigate to onboard screen
+            router.replace("/(onboardScreen)");
           } catch (e: any) {
             Alert.alert("Error", e.message);
           }
@@ -945,15 +969,13 @@ export default function Profile() {
           style: "destructive",
           onPress: async () => {
             try {
-              // TODO: Implement deleteUserAccount with your backend
-              // await yourBackend.deleteUserAccount();
-
-              Alert.alert("Info", "Account deletion needs to be implemented");
-              // router.replace("/(auth)");
+              await deleteUserAccount();
+              Alert.alert("Success", "Your account has been deleted.");
+              router.replace("/(auth)");
             } catch (e: any) {
               Alert.alert(
                 "Error",
-                "Please sign out and sign back in before deleting your account.",
+                e.message || "Failed to delete account. Please try again.",
               );
             }
           },
@@ -1003,24 +1025,42 @@ export default function Profile() {
         const localUri = result.assets[0].uri;
 
         try {
-          setAvatarUri(localUri);
-          updateAvatar(localUri);
-
-          try {
-            // TODO: Implement updateUserProfile with your backend
-            // await yourBackend.updateUserProfile({ avatarUri: localUri });
-            console.log("Avatar saved locally only - backend not configured");
-          } catch (error) {
-            console.log("Backend not configured - avatar saved locally only");
+          // Get current user
+          const user = await getCurrentUser();
+          if (!user) {
+            throw new Error("User not authenticated");
           }
 
-          Alert.alert("Success", "Profile picture updated!");
+          // Update local state immediately for better UX
+          setAvatarUri(localUri);
+          setUploadingAvatar(true);
+          updateAvatar(localUri);
+
+          // Try to upload to Supabase Storage
+          try {
+            const uploadedUrl = await uploadProfilePicture(localUri, user.id);
+
+            // Save the URL to Supabase database
+            await updateUserAvatar(uploadedUrl);
+
+            // Update local context with the remote URL
+            updateAvatar(uploadedUrl);
+            setAvatarUri(uploadedUrl);
+
+            Alert.alert("Success", "Profile picture updated!");
+          } catch (uploadError) {
+            console.log("Upload failed, keeping local avatar:", uploadError);
+            Alert.alert("Success", "Profile picture updated locally!");
+          }
         } catch (error) {
           console.error("Error updating avatar:", error);
+          // Keep the local avatar even if upload fails
           Alert.alert(
-            "Error",
-            "Failed to update profile picture. Please try again.",
+            "Success",
+            "Profile picture updated locally. Will sync when connected.",
           );
+        } finally {
+          setUploadingAvatar(false);
         }
       }
     } catch (error) {
@@ -1295,28 +1335,22 @@ export default function Profile() {
 
                 {/* Referral Code */}
                 <View style={styles.referralSection}>
-                  <Text style={styles.referralTitle}>Your Referral Code</Text>
-                  <View style={styles.referralCodeContainer}>
-                    <View style={styles.codeBox}>
-                      <Ionicons
-                        name="gift"
-                        size={fontScale(20)}
-                        color={"#f59e0b"}
-                        style={{ marginRight: wp(2) }}
-                      />
-                      <Text style={styles.codeText}>{referralCode}</Text>
-                    </View>
-                    {/* Copy Button */}
+                  <Text style={styles.referralTitle}>Invite Friends</Text>
+                  <View style={styles.referralRow}>
+                    {/* Referral Link Field */}
                     <TouchableOpacity
+                      style={styles.referralLinkBox}
                       onPress={copyToClipboard}
-                      style={styles.copyButton}
                     >
+                      <Text style={styles.referralLinkText} numberOfLines={1}>
+                        https://skibag.vercel.app/ref.html?ref={referralCode}
+                      </Text>
                       <Ionicons
                         name="copy-outline"
-                        size={fontScale(20)}
+                        size={fontScale(18)}
                         color={"#ffffff"}
+                        style={{ marginLeft: wp(2) }}
                       />
-                      <Text style={styles.copyButtonText}>Copy</Text>
                     </TouchableOpacity>
                     {/* Share Button */}
                     <TouchableOpacity
@@ -1331,10 +1365,6 @@ export default function Profile() {
                       <Text style={styles.copyButtonText}>Share</Text>
                     </TouchableOpacity>
                   </View>
-                  <Text style={styles.referralSubtext}>
-                    Share with friends to earn rewards • {referralCount}{" "}
-                    {referralCount === 1 ? "referral" : "referrals"}
-                  </Text>
                 </View>
 
                 {/* Rating */}
@@ -1617,6 +1647,29 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#757575",
     marginBottom: hp(1.5),
+  },
+  referralRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp(2.5),
+  },
+  referralLinkBox: {
+    flex: 1,
+    backgroundColor: "rgba(59, 72, 185, 0.2)",
+    borderWidth: 1,
+    borderColor: "#3b48b9",
+    borderRadius: wp(2.5),
+    paddingVertical: hp(1.5),
+    paddingHorizontal: wp(3),
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  referralLinkText: {
+    fontSize: fontScale(11),
+    fontWeight: "500",
+    color: "#ffffff",
+    flex: 1,
   },
   referralCodeContainer: { flexDirection: "row", gap: wp(2.5) },
   codeBox: {

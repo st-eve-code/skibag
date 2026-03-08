@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/lib/supabaseAuthService";
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
@@ -50,16 +51,26 @@ export default function SplashScreenPage() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Navigate when fonts are loaded
+  // Check authentication and navigate accordingly
   useEffect(() => {
     if (hasNavigated) return;
 
     const fontsReady = fontsLoaded || fontError;
 
     if (fontsReady) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         setHasNavigated(true);
-        router.replace("/(onboardScreen)");
+
+        // Check if user is already authenticated using custom auth
+        const user = await getCurrentUser();
+
+        if (user) {
+          // User is logged in, go to tabs (home)
+          router.replace("/(tabs)");
+        } else {
+          // User is not logged in, go to onboard screen
+          router.replace("/(onboardScreen)");
+        }
       }, 2500);
 
       return () => clearTimeout(timer);

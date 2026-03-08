@@ -3,7 +3,7 @@ import { signUpWithUsername } from "@/lib/supabaseAuthService";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -24,6 +24,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [signupLoading, setSignupLoading] = useState(false);
+
+  // Get referral code from deep link
+  const { ref } = useLocalSearchParams<{ ref?: string }>();
 
   // Form fields
   const [username, setUsername] = useState("");
@@ -76,7 +79,7 @@ export default function Signup() {
     if (!validate()) return;
     try {
       setSignupLoading(true);
-      await signUpWithUsername(username.trim(), password);
+      await signUpWithUsername(username.trim(), password, ref);
       // Navigate immediately after successful signup
       router.replace("/(tabs)");
     } catch (e: any) {

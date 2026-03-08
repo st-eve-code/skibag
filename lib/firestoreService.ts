@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { getCurrentUser } from "./supabaseAuthService";
 
 // Constants for points and coins system
 const POINTS_PER_REFERRAL = 100;
@@ -7,9 +8,9 @@ const WELCOME_BONUS_COINS = 50;
 
 // ─── Helper: get current user id ─────────────────────────────────────────────
 const getCurrentUserId = async (): Promise<string> => {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) throw new Error("User not authenticated");
-  return data.user.id;
+  const user = await getCurrentUser();
+  if (!user) throw new Error("User not authenticated");
+  return user.id;
 };
 
 // ─── Create user profile when they first sign up ─────────────────────────────
@@ -68,13 +69,35 @@ export const deleteUserAccount = async () => {
 };
 
 // ─── Submit feedback ──────────────────────────────────────────────────────────
-export const submitFeedback = async (feedback: string, rating: number) => {
+export const submitFeedback = async (
+  feedback: string,
+  rating: number,
+  category: string = "general",
+) => {
   const uid = await getCurrentUserId();
-  await supabase.from("feedback").insert({
+  console.log(
+    "Submitting feedback for user:",
+    uid,
+    "rating:",
+    rating,
+    "category:",
+    category,
+  );
+
+  const { data, error } = await supabase.from("feedback").insert({
     user_id: uid,
     message: feedback,
-    category: "general",
+    rating: rating,
+    category: category,
   });
+
+  if (error) {
+    console.error("Feedback insert error:", error);
+    throw new Error(error.message);
+  }
+
+  console.log("Feedback submitted successfully:", data);
+  return data;
 };
 
 // ─── Submit game rating ───────────────────────────────────────────────────────
