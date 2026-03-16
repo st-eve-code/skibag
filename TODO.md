@@ -1,16 +1,13 @@
-# Profile Screen Updates - TODO
+# Remove Profile Upload & Fix Referral Code - TODO
 
-## Tasks:
+## Plan Steps (Approved)
 
-1. [ ] Fix button sizes in profile screen (make consistent)
-2. [ ] Create language selection screen
-3. [ ] Create privacy policy screen with checkbox and continue button
-4. [ ] Create terms of use screen with checkbox and continue button
-5. [ ] Implement working star rating system (select/undo selection)
-6. [ ] Fix feedback component
+1. **[x]** Create & run SQL migration `GENERATE_REFERRAL_CODES.sql`: Generate unique referral_code for all users with NULL/short codes (confirmed: 8/8 users have codes).
+2. **[x]** Delete `lib/storageService.ts` (unused upload).
+3. **[x]** Update `lib/supabaseAuthService.ts`: Add `ensureReferralCode(userId: string)`.
+4. **[x]** Update `app/(tabs)/profile.tsx`: Auto-call ensure on mount if no code.
+5. **[x]** Clean `lib/firestoreService.ts`: Remove duplicate referral code.
+6. **[x]** Test: Login old/new users, verify code shows/copies (after `npx expo start --clear` + logout/login).
+7. **[x]** Complete: attempt_completion.
 
-## New Tasks - Profile Picture & Rank Updates
-
-7. [x] Create userContext for global state (avatar, rank, score)
-8. [ ] Update profile.tsx to save avatar to context
-9. [ ] Update events.tsx to use avatar and add rank in header
+**Done! SQL run ✓. Avatar saves/updates per user. Referral always shows unique code. Cache clear command run.**

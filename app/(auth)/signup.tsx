@@ -1,9 +1,11 @@
 import { signInWithApple, signInWithGoogle } from "@/lib/authService";
-import { signUpWithUsername } from "@/lib/supabaseAuthService";
+import { useTranslation } from "@/lib/I18nContext";
+import { getCurrentUser, signUpWithUsername } from "@/lib/supabaseAuthService";
+import { useUser } from "@/lib/userContext";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -22,11 +24,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Signup() {
+  const { t } = useTranslation();
+  const { setUserData, addNotification } = useUser();
   const [loading, setLoading] = useState(false);
   const [signupLoading, setSignupLoading] = useState(false);
 
-  // Get referral code from deep link
-  const { ref } = useLocalSearchParams<{ ref?: string }>();
+  // Get referral code from manual input only
+  const [referralCode, setReferralCode] = useState("");
 
   // Form fields
   const [username, setUsername] = useState("");
@@ -40,6 +44,7 @@ export default function Signup() {
     username?: string;
     password?: string;
     confirmPassword?: string;
+    referralCode?: string;
   }>({});
 
   const [fontsLoaded] = useFonts({
@@ -61,14 +66,13 @@ export default function Signup() {
   const validate = () => {
     const newErrors: typeof errors = {};
     if (!username.trim() || username.trim().length < 3) {
-      newErrors.username = "Username must be at least 3 characters";
+      newErrors.username = t("username_min_length");
     }
     if (!isPasswordValid) {
-      newErrors.password =
-        "Password must be 8+ chars with uppercase, lowercase, number & special character";
+      newErrors.password = t("password_requirements");
     }
     if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = t("passwords_dont_match");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -79,11 +83,38 @@ export default function Signup() {
     if (!validate()) return;
     try {
       setSignupLoading(true);
-      await signUpWithUsername(username.trim(), password, ref);
-      // Navigate immediately after successful signup
-      router.replace("/(tabs)");
+      // Use manual referral code from input field only
+      await signUpWithUsername(username.trim(), password, referralCode);
+
+      // Sync user data to UserContext after signup
+      const user = await getCurrentUser();
+      if (user) {
+        setUserData({
+          id: user.id,
+          username: user.username,
+          email: user.username + "@skibag.app",
+          avatarUri: user.avatar_url || null,
+          rank: user.rank || "beginner",
+          score: user.coins || 0,
+          day_streak: user.day_streak || 1,
+          last_streak_date: user.last_streak_date || undefined,
+        });
+
+        // Add welcome notification
+        addNotification(
+          "signup",
+          `Welcome, ${user.username}!`,
+          "Your account has been created successfully. Enjoy the game!",
+        );
+      }
+
+      // Small delay to ensure userData is set before navigation
+      setTimeout(() => {
+        // Navigate immediately after successful signup
+        router.replace("/(tabs)");
+      }, 500);
     } catch (e: any) {
-      Alert.alert("Sign Up Failed", e.message || "Something went wrong.");
+      Alert.alert(t("error"), e.message || t("signup_error"));
     } finally {
       setSignupLoading(false);
     }
@@ -93,9 +124,9 @@ export default function Signup() {
     try {
       setLoading(true);
       await signInWithGoogle();
-      router.replace("/(tabs)");
+      // Note: OAuth redirect will handle setting user data in callback
     } catch (e: any) {
-      Alert.alert("Google Sign-In Error", e.message);
+      Alert.alert(t("error"), t("google_signin_error"));
     } finally {
       setLoading(false);
     }
@@ -105,9 +136,9 @@ export default function Signup() {
     try {
       setLoading(true);
       await signInWithApple();
-      router.replace("/(tabs)");
+      // Note: OAuth redirect will handle setting user data in callback
     } catch (e: any) {
-      Alert.alert("Apple Sign-In Error", e.message);
+      Alert.alert(t("error"), t("apple_signin_error"));
     } finally {
       setLoading(false);
     }
@@ -178,7 +209,7 @@ export default function Signup() {
                   )}
 
                   {/* ── Username ── */}
-                  <Text style={styles.label}>Username</Text>
+                  <Text style={styles.label}>{t("username")}</Text>
                   <TextInput
                     style={[
                       styles.input,
@@ -199,7 +230,7 @@ export default function Signup() {
 
                   {/* ── Password ── */}
                   <Text style={[styles.label, { marginTop: 12 }]}>
-                    Password
+                    {t("password")}
                   </Text>
                   <View style={styles.passwordRow}>
                     <TextInput
@@ -208,7 +239,7 @@ export default function Signup() {
                         { flex: 1 },
                         errors.password ? styles.inputError : null,
                       ]}
-                      placeholder="Enter password"
+                      placeholder={t("password")}
                       placeholderTextColor="#999"
                       value={password}
                       onChangeText={(v) => {
@@ -223,7 +254,7 @@ export default function Signup() {
                       style={styles.eyeBtn}
                     >
                       <Text style={styles.eyeText}>
-                        {showPassword ? "Hide" : "Show"}
+                        {showPassword ? t("hide_password") : t("show_password")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -235,18 +266,21 @@ export default function Signup() {
                   {password.length > 0 && (
                     <View style={styles.rulesBox}>
                       {[
-                        { label: "8+ characters", ok: passwordRules.minLength },
                         {
-                          label: "Uppercase (A-Z)",
+                          label: t("min_8_chars"),
+                          ok: passwordRules.minLength,
+                        },
+                        {
+                          label: t("uppercase"),
                           ok: passwordRules.hasUppercase,
                         },
                         {
-                          label: "Lowercase (a-z)",
+                          label: t("lowercase"),
                           ok: passwordRules.hasLowercase,
                         },
-                        { label: "Number (0-9)", ok: passwordRules.hasNumber },
+                        { label: t("number"), ok: passwordRules.hasNumber },
                         {
-                          label: "Special character",
+                          label: t("special_char"),
                           ok: passwordRules.hasSpecial,
                         },
                       ].map((r, i) => (
@@ -265,7 +299,7 @@ export default function Signup() {
 
                   {/* ── Confirm Password ── */}
                   <Text style={[styles.label, { marginTop: 12 }]}>
-                    Confirm Password
+                    {t("confirm_password")}
                   </Text>
                   <View style={styles.passwordRow}>
                     <TextInput
@@ -274,7 +308,7 @@ export default function Signup() {
                         { flex: 1 },
                         errors.confirmPassword ? styles.inputError : null,
                       ]}
-                      placeholder="Re-enter password"
+                      placeholder={t("confirm_password")}
                       placeholderTextColor="#999"
                       value={confirmPassword}
                       onChangeText={(v) => {
@@ -292,7 +326,7 @@ export default function Signup() {
                       style={styles.eyeBtn}
                     >
                       <Text style={styles.eyeText}>
-                        {showConfirm ? "Hide" : "Show"}
+                        {showConfirm ? t("hide_password") : t("show_password")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -303,7 +337,34 @@ export default function Signup() {
                   ) : confirmPassword.length > 0 &&
                     password === confirmPassword ? (
                     <Text style={[styles.errorText, { color: "#4caf50" }]}>
-                      ✓ Passwords match
+                      ✓ {t("passwords_match")}
+                    </Text>
+                  ) : null}
+
+                  {/* ── Referral Code (Optional) ── */}
+                  <Text style={[styles.label, { marginTop: 12 }]}>
+                    {t("referral_code_optional")}
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.referralCode ? styles.inputError : null,
+                    ]}
+                    placeholder={t("referral_code_optional")}
+                    placeholderTextColor="#999"
+                    value={referralCode}
+                    onChangeText={(v) => {
+                      setReferralCode(v.toUpperCase());
+                      setErrors((e) => ({ ...e, referralCode: undefined }));
+                    }}
+                    autoCapitalize="characters"
+                    maxLength={8}
+                  />
+                  {errors.referralCode ? (
+                    <Text style={styles.errorText}>{errors.referralCode}</Text>
+                  ) : referralCode.length > 0 ? (
+                    <Text style={[styles.errorText, { color: "#4caf50" }]}>
+                      ✓ {t("share_code")}
                     </Text>
                   ) : null}
 
@@ -319,7 +380,9 @@ export default function Signup() {
                     {signupLoading ? (
                       <ActivityIndicator color="#fff" size="small" />
                     ) : (
-                      <Text style={styles.lightBtnText}>Create Account</Text>
+                      <Text style={styles.lightBtnText}>
+                        {t("create_account")}
+                      </Text>
                     )}
                   </TouchableOpacity>
 
@@ -333,7 +396,9 @@ export default function Signup() {
                       source={require("@/assets/logos/google.png")}
                       style={styles.logo}
                     />
-                    <Text style={styles.darkBtnText}>Continue with Google</Text>
+                    <Text style={styles.darkBtnText}>
+                      {t("or_continue_with")} Google
+                    </Text>
                   </TouchableOpacity>
 
                   {/* Apple — iOS only */}
@@ -348,7 +413,7 @@ export default function Signup() {
                         style={styles.logo}
                       />
                       <Text style={styles.darkBtnText}>
-                        Continue with Apple
+                        {t("or_continue_with")} Apple
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -376,7 +441,7 @@ export default function Signup() {
                         fontFamily: "Montserrat-Regular",
                       }}
                     >
-                      Already have an account?{" "}
+                      {t("already_have_account")}{" "}
                     </Text>
                     <TouchableOpacity onPress={() => router.push("/login")}>
                       <Text
@@ -387,7 +452,7 @@ export default function Signup() {
                           fontFamily: "Montserrat-Regular",
                         }}
                       >
-                        Sign in
+                        {t("login")}
                       </Text>
                     </TouchableOpacity>
                   </View>

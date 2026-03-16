@@ -1,13 +1,14 @@
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  Clipboard,
   Image,
   ImageBackground,
   ScrollView,
-  Clipboard,
   StatusBar,
   StyleSheet,
   Text,
@@ -18,13 +19,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Wallet() {
+  const { t } = useTranslation();
   const [balance] = useState(5000);
   const [bonusBalance] = useState(1200);
   const [userName] = useState("John");
-const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [choice, setChoice] = useState("");
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState("");
   const [showBalance, setShowBalance] = useState(true);
   const [cardId] = useState("4532 8910 2234 5678");
 
@@ -104,10 +108,10 @@ const [showModal, setShowModal] = useState(false);
   };
 
   const quickActions = [
-    { id: 1, title: "Deposit", icon: "add-circle", color: "#3a6fe9" },
-    { id: 2, title: "Withdraw", icon: "cash", color: "#22c55e" },
-    { id: 3, title: "History", icon: "time", color: "#f59e0b" },
-    { id: 4, title: "Transfer", icon: "swap-horizontal", color: "#8b5cf6" },
+    { id: 1, title: t("deposit"), icon: "add-circle", color: "#3a6fe9" },
+    { id: 2, title: t("withdraw"), icon: "cash", color: "#22c55e" },
+    { id: 3, title: t("history"), icon: "time", color: "#f59e0b" },
+    { id: 4, title: t("transfer"), icon: "swap-horizontal", color: "#8b5cf6" },
   ];
 
   const getTransactionIcon = (type: string) => {
@@ -160,7 +164,9 @@ const [showModal, setShowModal] = useState(false);
         <SafeAreaView style={styles.container} edges={["top"]}>
           <View style={styles.header}>
             <View>
-              <Text style={styles.greetingText}>Hello there, {userName} !</Text>
+              <Text style={styles.greetingText}>
+                {t("hello_user").replace("{name}", userName)}
+              </Text>
             </View>
             <TouchableOpacity
               style={styles.notificationButton}
@@ -199,7 +205,7 @@ const [showModal, setShowModal] = useState(false);
                         size={fontScale(28)}
                         color="#fff"
                       />
-                      <Text style={styles.walletTitle}>My Wallet</Text>
+                      <Text style={styles.walletTitle}>{t("my_wallet")}</Text>
                     </View>
                     <TouchableOpacity
                       style={styles.eyeButton}
@@ -213,7 +219,9 @@ const [showModal, setShowModal] = useState(false);
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.balanceLabel}>Available Balance</Text>
+                  <Text style={styles.balanceLabel}>
+                    {t("available_balance")}
+                  </Text>
 
                   <View style={styles.balanceAmount}>
                     <Text style={styles.balanceNumber}>
@@ -224,7 +232,11 @@ const [showModal, setShowModal] = useState(false);
                     </Text>
                   </View>
 
-                  <TouchableOpacity style={styles.cardIdRow} onPress={copyToClipboard} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.cardIdRow}
+                    onPress={copyToClipboard}
+                    activeOpacity={0.7}
+                  >
                     <Ionicons
                       name="card"
                       size={fontScale(14)}
@@ -248,17 +260,19 @@ const [showModal, setShowModal] = useState(false);
                         color="#fbbf24"
                       />
                       <Text style={styles.bonusText}>
-                        Bonus: {bonusBalance} XAF
+                        {t("bonus")}: {bonusBalance} XAF
                       </Text>
                     </View>
-                    <Text style={styles.validThru}>Valid Thru: 12/28</Text>
+                    <Text style={styles.validThru}>
+                      {t("valid_thru")}: 12/28
+                    </Text>
                   </View>
                 </View>
               </LinearGradient>
             </View>
 
             <View style={styles.quickActionsContainer}>
-              <Text style={styles.sectionTitle}>Quick Actions</Text>
+              <Text style={styles.sectionTitle}>{t("quick_actions")}</Text>
               <View style={styles.quickActionsGrid}>
                 {quickActions.map((action) => (
                   <TouchableOpacity
@@ -292,21 +306,21 @@ const [showModal, setShowModal] = useState(false);
                     <View style={styles.modalTitleRow}>
                       <Ionicons
                         name={
-                          choice === "Deposit"
+                          choice === t("deposit")
                             ? "add-circle"
-                            : choice === "Withdraw"
+                            : choice === t("withdraw")
                               ? "cash"
-                              : choice === "History"
+                              : choice === t("history")
                                 ? "time"
                                 : "swap-horizontal"
                         }
                         size={fontScale(28)}
                         color={
-                          choice === "Deposit"
+                          choice === t("deposit")
                             ? "#3a6fe9"
-                            : choice === "Withdraw"
+                            : choice === t("withdraw")
                               ? "#22c55e"
-                              : choice === "History"
+                              : choice === t("history")
                                 ? "#f59e0b"
                                 : "#8b5cf6"
                         }
@@ -330,9 +344,64 @@ const [showModal, setShowModal] = useState(false);
                     style={styles.modalImage}
                   />
 
-                  {choice === "Deposit" && (
+                  {choice === t("deposit") && (
                     <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>Enter Amount (XAF)</Text>
+                      {/* Payment Method Selection */}
+                      <Text style={styles.inputLabel}>
+                        {t("payment_method")}
+                      </Text>
+                      <View style={styles.paymentOptions}>
+                        <TouchableOpacity
+                          style={[
+                            styles.paymentOption,
+                            selectedPayment === "mtn" &&
+                              styles.paymentOptionSelected,
+                          ]}
+                          onPress={() => setSelectedPayment("mtn")}
+                        >
+                          <Text
+                            style={[
+                              styles.paymentOptionText,
+                              selectedPayment === "mtn" &&
+                                styles.paymentOptionTextSelected,
+                            ]}
+                          >
+                            MTN
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.paymentOption,
+                            selectedPayment === "orange" &&
+                              styles.paymentOptionSelected,
+                          ]}
+                          onPress={() => setSelectedPayment("orange")}
+                        >
+                          <Text
+                            style={[
+                              styles.paymentOptionText,
+                              selectedPayment === "orange" &&
+                                styles.paymentOptionTextSelected,
+                            ]}
+                          >
+                            Orange
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Phone Number */}
+                      <Text style={styles.inputLabel}>{t("phone_number")}</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder={t("phone_number")}
+                        placeholderTextColor="#666"
+                        keyboardType="phone-pad"
+                        value={phoneNumber}
+                        onChangeText={setPhoneNumber}
+                      />
+
+                      {/* Amount */}
+                      <Text style={styles.inputLabel}>{t("enter_amount")}</Text>
                       <TextInput
                         style={styles.input}
                         placeholder="0"
@@ -346,16 +415,16 @@ const [showModal, setShowModal] = useState(false);
                         onPress={handleSubmit}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.submitButtonText}>Deposit Now</Text>
+                        <Text style={styles.submitButtonText}>
+                          {t("deposit_now")}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   )}
 
-                  {choice === "Withdraw" && (
+                  {choice === t("withdraw") && (
                     <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>
-                        Enter Amount to Withdraw (XAF)
-                      </Text>
+                      <Text style={styles.inputLabel}>{t("withdraw_now")}</Text>
                       <TextInput
                         style={styles.input}
                         placeholder="0"
@@ -372,12 +441,14 @@ const [showModal, setShowModal] = useState(false);
                         onPress={handleSubmit}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.submitButtonText}>Withdraw</Text>
+                        <Text style={styles.submitButtonText}>
+                          {t("withdraw_now")}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   )}
 
-                  {choice === "History" && (
+                  {choice === t("history") && (
                     <TouchableOpacity
                       style={styles.fullScreenButton}
                       onPress={() => {
@@ -392,25 +463,25 @@ const [showModal, setShowModal] = useState(false);
                         color="#f59e0b"
                       />
                       <Text style={styles.fullScreenButtonText}>
-                        View All Transactions
+                        {t("view_all_transactions")}
                       </Text>
                       <Text style={styles.fullScreenButtonSubtext}>
-                        Tap to see your complete transaction history
+                        {t("tap_see_history")}
                       </Text>
                     </TouchableOpacity>
                   )}
 
-                  {choice === "Transfer" && (
+                  {choice === t("transfer") && (
                     <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>Account ID</Text>
+                      <Text style={styles.inputLabel}>{t("account_id")}</Text>
                       <TextInput
                         style={styles.input}
-                        placeholder="Enter account ID"
+                        placeholder={t("enter_account_id")}
                         placeholderTextColor="#666"
                         value={recipient}
                         onChangeText={setRecipient}
                       />
-                      <Text style={styles.inputLabel}>Enter Amount (XAF)</Text>
+                      <Text style={styles.inputLabel}>{t("enter_amount")}</Text>
                       <TextInput
                         style={styles.input}
                         placeholder="0"
@@ -427,7 +498,9 @@ const [showModal, setShowModal] = useState(false);
                         onPress={handleSubmit}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.submitButtonText}>Transfer</Text>
+                        <Text style={styles.submitButtonText}>
+                          {t("transfer_now")}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -437,9 +510,11 @@ const [showModal, setShowModal] = useState(false);
 
             <View style={styles.transactionsContainer}>
               <View style={styles.transactionsHeader}>
-                <Text style={styles.sectionTitle}>Recent Transactions</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("recent_transactions")}
+                </Text>
                 <TouchableOpacity onPress={() => router.push("/transactions")}>
-                  <Text style={styles.viewAllText}>View all</Text>
+                  <Text style={styles.viewAllText}>{t("view_all")}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -950,5 +1025,32 @@ const styles = StyleSheet.create({
     fontSize: fontScale(13),
     color: "rgba(255, 255, 255, 0.5)",
     marginTop: hp(1),
+  },
+  // Payment Options Styles
+  paymentOptions: {
+    flexDirection: "row",
+    gap: wp(3),
+    marginBottom: hp(2),
+  },
+  paymentOption: {
+    flex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: wp(3),
+    padding: wp(4),
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  paymentOptionSelected: {
+    borderColor: "#3a6fe9",
+    backgroundColor: "rgba(58, 111, 233, 0.2)",
+  },
+  paymentOptionText: {
+    color: "#a0a0a0",
+    fontSize: fontScale(16),
+    fontWeight: "600",
+  },
+  paymentOptionTextSelected: {
+    color: "#3a6fe9",
   },
 });

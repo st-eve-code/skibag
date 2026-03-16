@@ -1,19 +1,21 @@
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
-    ImageBackground,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ImageBackground,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Transactions() {
+  const { t } = useTranslation();
   const transactions = [
     {
       id: 1,
@@ -168,7 +170,7 @@ export default function Transactions() {
             >
               <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>All Transactions</Text>
+            <Text style={styles.headerTitle}>{t("all_transactions")}</Text>
             <View style={styles.placeholder} />
           </View>
 

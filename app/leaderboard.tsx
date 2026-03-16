@@ -1,3 +1,4 @@
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
@@ -58,6 +59,7 @@ const globalLeaderboard: LeaderboardEntry[] = [
 
 export default function Leaderboard() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [selectedType, setSelectedType] = useState<LeaderboardType>("global");
 
   const currentLeaderboard = globalLeaderboard;
@@ -137,9 +139,11 @@ export default function Leaderboard() {
               ]}
             >
               {entry.name}
-              {entry.isCurrentUser && " (You)"}
+              {entry.isCurrentUser && ` ${t("you")}`}
             </Text>
-            <Text style={styles.winsText}>{entry.wins} wins</Text>
+            <Text style={styles.winsText}>
+              {entry.wins} {t("wins_count")}
+            </Text>
           </View>
         </View>
         <View style={styles.cardRight}>
@@ -183,7 +187,7 @@ export default function Leaderboard() {
             >
               <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Leaderboard</Text>
+            <Text style={styles.headerTitle}>{t("leaderboard")}</Text>
             <View style={{ width: wp(10) }} />
           </View>
 
@@ -202,7 +206,7 @@ export default function Leaderboard() {
                   selectedType === "global" && styles.categoryTextActive,
                 ]}
               >
-                Global players leaderboard
+                {t("global_players_leaderboard")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -224,8 +228,8 @@ export default function Leaderboard() {
                     height: hp(18.8),
                     marginLeft: wp(0.2),
                     marginTop: -hp(20),
-                    position:'absolute',
-                    zIndex:100
+                    position: "absolute",
+                    zIndex: 100,
                   }}
                 />
                 {/* <Ionicons name="trophy" size={fontScale(24)} color="#FFD700" />
@@ -250,7 +254,7 @@ export default function Leaderboard() {
                       marginLeft: wp(0),
                       marginTop: -20,
                       position: "absolute",
-                      zIndex:100
+                      zIndex: 100,
                     }}
                   />
                   <View
@@ -324,7 +328,7 @@ export default function Leaderboard() {
                         width: wp(20),
                         height: hp(15),
                         position: "absolute",
-                        zIndex:100,
+                        zIndex: 100,
                         top: -hp(4),
                         left: -wp(3),
                       }}
@@ -457,11 +461,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: wp(1.5),
     marginBottom: hp(1),
-    marginTop:hp(20)
+    marginTop: hp(20),
   },
   winnersCircleTitle: {
     color: "#FFD700",
-    fontSize: fontScale(16),    
+    fontSize: fontScale(16),
     fontWeight: "800",
     letterSpacing: 2,
     textShadowColor: "rgba(0, 0, 0, 0.8)",
@@ -535,7 +539,7 @@ const styles = StyleSheet.create({
   },
   medalBadge: {
     position: "absolute",
-    zIndex:-100,
+    zIndex: -100,
     bottom: -hp(0.5),
     right: -wp(1),
     backgroundColor: "rgba(0, 0, 0, 0.7)",

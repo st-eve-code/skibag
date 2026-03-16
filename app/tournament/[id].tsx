@@ -1,16 +1,17 @@
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
-    ImageBackground,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ImageBackground,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -34,7 +35,7 @@ const tournamentData: { [key: string]: any } = {
     players: "64/128",
     status: "Live",
     entry: "$25",
-    timeleft:'12 : 30 : 00',
+    timeleft: "12 : 30 : 00",
     image: require("@/assets/gameicons/pbg.jpeg"),
     description:
       "The ultimate PUBG Mobile tournament! Compete against the best players worldwide for a massive prize pool.",
@@ -47,7 +48,7 @@ const tournamentData: { [key: string]: any } = {
     players: "32/64",
     status: "Starting Soon",
     entry: "$15",
-    timeleft:'24 : 35 : 50',
+    timeleft: "24 : 35 : 50",
     image: require("@/assets/gameicons/cod.jpg"),
     description:
       "Join the weekend warriors! Fast-paced COD matches with exciting prizes.",
@@ -60,7 +61,7 @@ const tournamentData: { [key: string]: any } = {
     players: "16/32",
     status: "Live",
     entry: "$10",
-    timeleft:'34 : 30 : 30',
+    timeleft: "34 : 30 : 30",
     image: require("@/assets/gameicons/street.jpeg"),
     description:
       "Prove you're the best fighter! Street Fighter V tournament with top players.",
@@ -73,7 +74,7 @@ const tournamentData: { [key: string]: any } = {
     players: "24/32",
     status: "Live",
     entry: "$20",
-    timeleft:'14 : 50 : 60',
+    timeleft: "14 : 50 : 60",
     image: require("@/assets/gameicons/race.jpeg"),
     description:
       "Speed through the competition! Mario Kart championship awaits.",
@@ -93,6 +94,7 @@ const tournamentData: { [key: string]: any } = {
 };
 
 export default function TournamentDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
@@ -101,12 +103,12 @@ export default function TournamentDetail() {
   if (!tournament) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Tournament not found</Text>
+        <Text style={styles.errorText}>{t("tournament_not_found")}</Text>
         <TouchableOpacity
           style={styles.backButtonError}
           onPress={() => router.back()}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <Text style={styles.backButtonText}>{t("go_back")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -180,9 +182,19 @@ export default function TournamentDetail() {
                           color="#FFD700"
                         />
                         <Text style={styles.prizeText}>{tournament.prize}</Text>
-                        <View style={{flexDirection:'row',alignItems:'center',gap:5}}>
-                          <Text style={{color:'white',paddingLeft:12}}>Time Left :</Text>
-                          <Text style={{color:'white'}}>{tournament.timeleft}</Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 5,
+                          }}
+                        >
+                          <Text style={{ color: "white", paddingLeft: 12 }}>
+                            {t("time_left")}
+                          </Text>
+                          <Text style={{ color: "white" }}>
+                            {tournament.timeleft}
+                          </Text>
                         </View>
                       </View>
                       <View style={styles.prizeItem}>
@@ -219,13 +231,13 @@ export default function TournamentDetail() {
                     color="#fff"
                   />
                   <Text style={styles.joinButtonText}>
-                    Join the Live Tournament
+                    {t("join_live_tournament")}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <View style={styles.entryContainer}>
-                <Text style={styles.entryLabel}>Entry Fee:</Text>
+                <Text style={styles.entryLabel}>{t("entry_fee")}</Text>
                 <Text style={styles.entryFee}>{tournament.entry}</Text>
               </View>
             </View>
@@ -239,10 +251,12 @@ export default function TournamentDetail() {
                     size={fontScale(20)}
                     color="#4fc3f7"
                   />
-                  <Text style={styles.playersTitle}>Connected Players</Text>
+                  <Text style={styles.playersTitle}>
+                    {t("connected_players")}
+                  </Text>
                 </View>
                 <Text style={styles.playersCount}>
-                  {connectedUsers.length} joined
+                  {connectedUsers.length} {t("joined")}
                 </Text>
               </View>
 
@@ -283,7 +297,9 @@ export default function TournamentDetail() {
                           ]}
                         >
                           <Text style={styles.statusIndicatorText}>
-                            {player.status}
+                            {player.status === "Playing"
+                              ? t("playing")
+                              : t("waiting")}
                           </Text>
                         </View>
                       </View>
@@ -292,7 +308,7 @@ export default function TournamentDetail() {
                       <Text style={styles.playerScore}>
                         {player.score.toLocaleString()}
                       </Text>
-                      <Text style={styles.scoreLabel}>points</Text>
+                      <Text style={styles.scoreLabel}>{t("points_short")}</Text>
                     </View>
                   </View>
                 ))}
@@ -301,7 +317,7 @@ export default function TournamentDetail() {
 
             {/* Tournament Description */}
             <View style={styles.descriptionSection}>
-              <Text style={styles.sectionTitle}>About Tournament</Text>
+              <Text style={styles.sectionTitle}>{t("about_tournament")}</Text>
               <Text style={styles.descriptionText}>
                 {tournament.description}
               </Text>

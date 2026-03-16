@@ -1,0 +1,12 @@
+{
+  "select_language": "Select Language",
+  "language": "Language",
+  "english": "English",
+  "french": "French",
+  "continue": "Continue",
+  "current_language": "Current Language",
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings"
+  }
+}

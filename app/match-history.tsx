@@ -1,3 +1,4 @@
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
@@ -9,7 +10,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -165,6 +166,7 @@ const allMatchHistory: MatchHistoryItem[] = [
 
 export default function MatchHistory() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<MatchType>("daily");
 
   const currentMatches = allMatchHistory.filter(
@@ -190,7 +192,7 @@ export default function MatchHistory() {
           <Text style={styles.opponentName}>
             {match.type === "tournament" && match.tournamentName
               ? match.tournamentName
-              : `vs ${match.opponent}`}
+              : `${t("vs")} ${match.opponent}`}
           </Text>
           <Text style={styles.matchGame}>{match.game}</Text>
         </View>
@@ -216,7 +218,11 @@ export default function MatchHistory() {
                   : styles.drawText,
             ]}
           >
-            {match.result}
+            {match.result === "Win"
+              ? t("win")
+              : match.result === "Loss"
+                ? t("loss")
+                : t("draw")}
           </Text>
         </View>
         <Text style={styles.matchScore}>
@@ -250,7 +256,7 @@ export default function MatchHistory() {
             >
               <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Match History</Text>
+            <Text style={styles.headerTitle}>{t("match_history_title")}</Text>
             <View style={{ width: wp(10) }} />
           </View>
 
@@ -269,7 +275,7 @@ export default function MatchHistory() {
                   selectedCategory === "daily" && styles.categoryTextActive,
                 ]}
               >
-                Daily Matches
+                {t("daily_matches")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -287,7 +293,7 @@ export default function MatchHistory() {
                     styles.categoryTextActive,
                 ]}
               >
-                Tournament
+                {t("tournament_match")}
               </Text>
             </TouchableOpacity>
           </View>

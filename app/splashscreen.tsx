@@ -68,8 +68,8 @@ export default function SplashScreenPage() {
           // User is logged in, go to tabs (home)
           router.replace("/(tabs)");
         } else {
-          // User is not logged in, go to onboard screen
-          router.replace("/(onboardScreen)");
+          // User is not logged in, go to language selection first
+          router.replace("/language-selection");
         }
       }, 2500);
 

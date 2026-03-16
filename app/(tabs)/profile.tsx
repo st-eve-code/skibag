@@ -1,941 +1,335 @@
-// import { fontScale, hp, wp } from "@/lib/responsive";
-// import { useUser } from "@/lib/userContext";
-// import { signOut } from "@/lib/authService";
-// import { deleteUserAccount, getUserProfile, submitFeedback, updateUserProfile, getReferralCount, getUserPointsAndCoins, convertPointsToCoins } from "@/lib/firestoreService";
-// import { uploadProfilePicture, deleteProfilePicture } from "@/lib/storageService";
-// import { Ionicons } from "@expo/vector-icons";
-// import * as Clipboard from "expo-clipboard";
-// import * as ImagePicker from "expo-image-picker";
-// import { useRouter } from "expo-router";
-// import React, { useState, useEffect } from "react";
-// import {
-//   Alert,
-//   Image,
-//   ImageBackground,
-//   KeyboardAvoidingView,
-//   Platform,
-//   ScrollView,
-//   StatusBar,
-//   StyleSheet,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   View,
-//   ActivityIndicator,
-// } from "react-native";
-// import { SafeAreaView } from "react-native-safe-area-context";
-
-// let ImageCropper: any = null;
-// try {
-//   ImageCropper = require("expo-image-cropper");
-// } catch (e) {
-//   console.log("expo-image-cropper not available");
-// }
-
-// export default function Profile() {
-//   const router = useRouter();
-//   const { userData, updateAvatar } = useUser();
-
-//   const [avatarUri, setAvatarUri] = useState<string | null>(userData.avatarUri);
-//   const [rating, setRating] = useState(0);
-//   const [feedback, setFeedback] = useState("");
-//   const [referralCode, setReferralCode] = useState("Loading...");
-//   const [referralCount, setReferralCount] = useState(0);
-//   const [referralPoints, setReferralPoints] = useState(0);
-//   const [coins, setCoins] = useState(0);
-//   const [submittingFeedback, setSubmittingFeedback] = useState(false);
-//   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-//   const [showConversionModal, setShowConversionModal] = useState(false);
-//   const [pointsToConvert, setPointsToConvert] = useState('');
-
-//   // ─── Load user profile from Firestore ────────────────────────────────────
-//   useEffect(() => {
-//     const loadProfile = async () => {
-//       try {
-//         const profile = await getUserProfile();
-//         console.log("Profile loaded:", profile);
-
-//         if (profile?.referralCode) {
-//           setReferralCode(profile.referralCode);
-//         } else {
-//           // If no profile exists yet, generate a temporary code
-//           console.log("No profile found - generating temporary code");
-//           const tempCode = generateTempReferralCode();
-//           setReferralCode(tempCode);
-//         }
-
-//         // Load referral count
-//         const count = await getReferralCount();
-//         setReferralCount(count);
-
-//         // Load points and coins
-//         const { referralPoints: points, coins: userCoins } = await getUserPointsAndCoins();
-//         setReferralPoints(points);
-//         setCoins(userCoins);
-
-//         // Sync Firestore data with local context
-//         if (profile?.avatarUri) {
-//           setAvatarUri(profile.avatarUri);
-//           updateAvatar(profile.avatarUri);
-//         }
-//       } catch (e) {
-//         console.error("Error loading profile:", e);
-//         // Generate fallback code on error
-//         const fallbackCode = generateTempReferralCode();
-//         setReferralCode(fallbackCode);
-//       }
-//     };
-//     loadProfile();
-//   }, []);
-
-//   // Generate temporary referral code
-//   const generateTempReferralCode = () => {
-//     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-//     let code = '';
-//     for (let i = 0; i < 8; i++) {
-//       code += chars.charAt(Math.floor(Math.random() * chars.length));
-//     }
-//     return code;
-//   };
-
-//   const copyToClipboard = async () => {
-//     await Clipboard.setStringAsync(referralCode);
-//     Alert.alert("Copied!", "Referral code copied to clipboard");
-//   };
-
-//   const handleStarPress = (star: number) => {
-//     if (rating === star) {
-//       setRating(0);
-//     } else {
-//       setRating(star);
-//     }
-//   };
-
-//   // ─── Submit Feedback ──────────────────────────────────────────────────────
-//   const handleFeedbackSubmit = async () => {
-//     if (!feedback.trim()) return;
-//     if (rating === 0) {
-//       Alert.alert("Rating Required", "Please select a star rating before submitting.");
-//       return;
-//     }
-//     try {
-//       setSubmittingFeedback(true);
-//       await submitFeedback(feedback, rating);
-//       Alert.alert("Thank you!", "Your feedback has been submitted.");
-//       setFeedback("");
-//       setRating(0);
-//     } catch (e: any) {
-//       Alert.alert("Error", e.message);
-//     } finally {
-//       setSubmittingFeedback(false);
-//     }
-//   };
-
-//   // ─── Logout ────────────────────────────────────────────────────────────────
-//   const handleLogout = () => {
-//     Alert.alert(
-//       "Logout",
-//       "Are you sure you want to logout?",
-//       [
-//         { text: "Cancel", style: "cancel" },
-//         {
-//           text: "Logout",
-//           style: "destructive",
-//           onPress: async () => {
-//             try {
-//               await signOut();
-//               router.replace("/(auth)");
-//             } catch (e: any) {
-//               Alert.alert("Error", e.message);
-//             }
-//           },
-//         },
-//       ]
-//     );
-//   };
-
-//   // ─── Delete Account ────────────────────────────────────────────────────────
-//   const handleDeleteAccount = () => {
-//     Alert.alert(
-//       "Delete Account",
-//       "This will permanently delete your account and all your data. This action cannot be undone.",
-//       [
-//         { text: "Cancel", style: "cancel" },
-//         {
-//           text: "Delete",
-//           style: "destructive",
-//           onPress: async () => {
-//             try {
-//               await deleteUserAccount();
-//               router.replace("/(auth)");
-//             } catch (e: any) {
-//               Alert.alert(
-//                 "Error",
-//                 "Please sign out and sign back in before deleting your account."
-//               );
-//             }
-//           },
-//         },
-//       ]
-//     );
-//   };
-
-//   const pickImage = async (useCamera: boolean) => {
-//     try {
-//       if (useCamera) {
-//         const { status } = await ImagePicker.requestCameraPermissionsAsync();
-//         if (status !== "granted") {
-//           Alert.alert("Permission Required", "Camera permission is required to take photos.");
-//           return;
-//         }
-//       } else {
-//         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-//         if (status !== "granted") {
-//           Alert.alert("Permission Required", "Photo library permission is required to select photos.");
-//           return;
-//         }
-//       }
-
-//       const result = useCamera
-//         ? await ImagePicker.launchCameraAsync({
-//             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-//             allowsEditing: true,
-//             quality: 0.8,
-//             aspect: [1, 1],
-//           })
-//         : await ImagePicker.launchImageLibraryAsync({
-//             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-//             allowsEditing: true,
-//             quality: 0.8,
-//             aspect: [1, 1],
-//           });
-
-//       if (!result.canceled && result.assets[0]) {
-//         const localUri = result.assets[0].uri;
-
-//         try {
-//           // Update local state immediately
-//           setAvatarUri(localUri);
-//           updateAvatar(localUri);
-
-//           // Try to save to Firestore (optional - will fail gracefully if not configured)
-//           try {
-//             await updateUserProfile({ avatarUri: localUri });
-//           } catch (firestoreError) {
-//             console.log('Firestore not configured - avatar saved locally only');
-//           }
-
-//           Alert.alert("Success", "Profile picture updated!");
-//         } catch (error) {
-//           console.error('Error updating avatar:', error);
-//           Alert.alert("Error", "Failed to update profile picture. Please try again.");
-//         }
-//       }
-//     } catch (error) {
-//       Alert.alert("Error", "Failed to pick image. Please try again.");
-//     }
-//   };
-
-//   const handleConvertPoints = async () => {
-//     const points = parseInt(pointsToConvert);
-
-//     if (isNaN(points) || points <= 0) {
-//       Alert.alert("Invalid Amount", "Please enter a valid number of points");
-//       return;
-//     }
-
-//     if (points % 10 !== 0) {
-//       Alert.alert("Invalid Amount", "Points must be in multiples of 10");
-//       return;
-//     }
-
-//     if (points > referralPoints) {
-//       Alert.alert("Insufficient Points", `You only have ${referralPoints} points`);
-//       return;
-//     }
-
-//     try {
-//       const coinsEarned = await convertPointsToCoins(points);
-
-//       // Update local state
-//       setReferralPoints(prev => prev - points);
-//       setCoins(prev => prev + coinsEarned);
-//       setPointsToConvert('');
-//       setShowConversionModal(false);
-
-//       Alert.alert(
-//         "Conversion Successful! 🎉",
-//         `You converted ${points} points to ${coinsEarned} coins!`
-//       );
-//     } catch (error: any) {
-//       Alert.alert("Error", error.message || "Failed to convert points");
-//     }
-//   };
-
-//   const showImagePickerOptions = () => {
-//     Alert.alert(
-//       "Change Profile Photo",
-//       "Choose an option",
-//       [
-//         { text: "Take Photo", onPress: () => pickImage(true) },
-//         { text: "Choose from Gallery", onPress: () => pickImage(false) },
-//         { text: "Cancel", style: "cancel" },
-//       ],
-//       { cancelable: true }
-//     );
-//   };
-
-//   return (
-//     <ImageBackground
-//       source={require("@/assets/images/bg3.jpg")}
-//       style={styles.backgroundImage}
-//       resizeMode="cover"
-//     >
-//       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-//       <View style={styles.overlay}>
-//         <SafeAreaView style={styles.container} edges={["top"]}>
-//           <KeyboardAvoidingView
-//             style={{ flex: 1 }}
-//             behavior={Platform.OS === "ios" ? "padding" : "height"}
-//             keyboardVerticalOffset={100}
-//           >
-//             {/* Profile Header */}
-//             <View style={styles.profileHeader}>
-//               <View style={styles.avatarContainer}>
-//                 <TouchableOpacity onPress={showImagePickerOptions}>
-//                   {avatarUri ? (
-//                     <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-//                   ) : (
-//                     <View style={styles.avatar}>
-//                       <Ionicons name="person" size={fontScale(36)} color="#ffffff" />
-//                     </View>
-//                   )}
-//                 </TouchableOpacity>
-//                 <TouchableOpacity style={styles.editAvatarButton} onPress={showImagePickerOptions}>
-//                   <Ionicons name="camera" size={fontScale(12)} color="#ffffff" />
-//                 </TouchableOpacity>
-//               </View>
-//               <Text style={styles.username}>
-//                 {auth().currentUser?.displayName ?? "Player"}
-//               </Text>
-//               <Text style={styles.userId}>
-//                 {auth().currentUser?.email ?? ""}
-//               </Text>
-//             </View>
-
-//             <View style={{ alignItems: "flex-start", marginVertical: hp(1), alignSelf: "center" }}>
-//               <Text style={styles.text}>Profile</Text>
-//             </View>
-
-//             <ScrollView
-//               showsVerticalScrollIndicator={false}
-//               contentContainerStyle={styles.scrollContent}
-//               keyboardShouldPersistTaps="handled"
-//             >
-//               {/* POINTS & COINS SECTION */}
-//               <Text style={styles.sectionLabel}>Rewards</Text>
-//               <View style={styles.rewardsCard}>
-//                 <View style={styles.rewardRow}>
-//                   <View style={styles.rewardItem}>
-//                     <View style={styles.rewardIconContainer}>
-//                       <Ionicons name="star" size={fontScale(28)} color="#f59e0b" />
-//                     </View>
-//                     <View>
-//                       <Text style={styles.rewardLabel}>Referral Points</Text>
-//                       <Text style={styles.rewardValue}>{referralPoints}</Text>
-//                     </View>
-//                   </View>
-//                   <View style={styles.rewardItem}>
-//                     <View style={styles.rewardIconContainer}>
-//                       <Image
-//                         source={require('@/assets/badges/coin.png')}
-//                         style={{ width: wp(8), height: wp(8) }}
-//                       />
-//                     </View>
-//                     <View>
-//                       <Text style={styles.rewardLabel}>Coins</Text>
-//                       <Text style={styles.rewardValue}>{coins}</Text>
-//                     </View>
-//                   </View>
-//                 </View>
-
-//                 {/* Convert Points Button */}
-//                 {referralPoints >= 10 && (
-//                   <TouchableOpacity
-//                     style={styles.convertButton}
-//                     onPress={() => setShowConversionModal(true)}
-//                   >
-//                     <Ionicons name="swap-horizontal" size={fontScale(20)} color="#ffffff" />
-//                     <Text style={styles.convertButtonText}>Convert Points to Coins</Text>
-//                   </TouchableOpacity>
-//                 )}
-
-//                 <Text style={styles.rewardHint}>
-//                   🎁 Earn 100 points for each referral • 10 points = 1 coin
-//                 </Text>
-
-//                 {/* Roulette Button */}
-//                 {coins >= 10 && (
-//                   <TouchableOpacity
-//                     style={styles.rouletteButton}
-//                     onPress={() => router.push('/roulette')}
-//                   >
-//                     <Ionicons name="play-circle" size={fontScale(24)} color="#ffffff" />
-//                     <Text style={styles.rouletteButtonText}>Play Roulette Game</Text>
-//                     <Ionicons name="chevron-forward" size={fontScale(20)} color="#ffffff" />
-//                   </TouchableOpacity>
-//                 )}
-//               </View>
-
-//               {/* GENERAL SECTION */}
-//               <Text style={styles.sectionLabel}>General</Text>
-//               <View style={styles.card}>
-
-//                 {/* Email Address */}
-//                 <View style={styles.emailContainer}>
-//                   <Text style={styles.emailLabel}>Email address:</Text>
-//                   <Text style={styles.emailValue}>
-//                     {auth().currentUser?.email ?? "No email"}
-//                   </Text>
-//                 </View>
-
-//                 {/* Language */}
-//                 <View style={styles.buttonSpacing}>
-//                   <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/language")}>
-//                     <View style={styles.buttonContent}>
-//                       <Ionicons name="globe" size={fontScale(24)} color={"#ffffff"} />
-//                       <Text style={styles.buttonText}>Select Language</Text>
-//                     </View>
-//                     <Ionicons name="chevron-forward" size={fontScale(26)} color={"rgb(216, 216, 216)"} />
-//                   </TouchableOpacity>
-//                 </View>
-
-//                 {/* Privacy Policy */}
-//                 <View style={styles.buttonSpacing}>
-//                   <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/privacy-policy")}>
-//                     <View style={styles.buttonContent}>
-//                       <Ionicons name="key" size={fontScale(24)} color={"#ffffff"} />
-//                       <Text style={styles.buttonText}>Privacy Policy</Text>
-//                     </View>
-//                     <Ionicons name="chevron-forward" size={fontScale(26)} color={"rgb(216, 216, 216)"} />
-//                   </TouchableOpacity>
-//                 </View>
-
-//                 {/* Terms of Use */}
-//                 <View style={styles.buttonSpacing}>
-//                   <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/terms-of-use")}>
-//                     <View style={styles.buttonContent}>
-//                       <Ionicons name="flag" size={fontScale(20)} color={"#ffffff"} />
-//                       <Text style={styles.buttonText}>Terms of use</Text>
-//                     </View>
-//                     <Ionicons name="chevron-forward" size={fontScale(26)} color={"rgb(216, 216, 216)"} />
-//                   </TouchableOpacity>
-//                 </View>
-
-//                 {/* Referral Code */}
-//                 <View style={styles.referralSection}>
-//                   <Text style={styles.referralTitle}>Your Referral Code</Text>
-//                   <View style={styles.referralCodeContainer}>
-//                     <View style={styles.codeBox}>
-//                       <Ionicons name="gift" size={fontScale(20)} color={"#f59e0b"} style={{ marginRight: wp(2) }} />
-//                       <Text style={styles.codeText}>{referralCode}</Text>
-//                     </View>
-//                     <TouchableOpacity onPress={copyToClipboard} style={styles.copyButton}>
-//                       <Ionicons name="copy-outline" size={fontScale(20)} color={"#ffffff"} />
-//                       <Text style={styles.copyButtonText}>Copy</Text>
-//                     </TouchableOpacity>
-//                   </View>
-//                   <Text style={styles.referralSubtext}>
-//                     Share with friends to earn rewards • {referralCount} {referralCount === 1 ? 'referral' : 'referrals'}
-//                   </Text>
-//                 </View>
-
-//                 {/* Rating */}
-//                 <View style={styles.ratingSection}>
-//                   <Text style={styles.ratingTitle}>Rate Us</Text>
-//                   <View style={styles.starsRow}>
-//                     {[1, 2, 3, 4, 5].map((star) => (
-//                       <TouchableOpacity key={star} onPress={() => handleStarPress(star)}>
-//                         <Ionicons
-//                           name="star"
-//                           size={fontScale(24)}
-//                           color={star <= rating ? "#f3893d" : "#e1e1e1ee"}
-//                         />
-//                       </TouchableOpacity>
-//                     ))}
-//                   </View>
-//                   <View style={styles.feedbackContainer}>
-//                     <Text style={styles.feedbackTitle}>Feedback</Text>
-//                     <TextInput
-//                       placeholder="Enter your feedback"
-//                       placeholderTextColor="rgb(169, 169, 167)"
-//                       style={styles.feedbackInput}
-//                       multiline
-//                       numberOfLines={3}
-//                       value={feedback}
-//                       onChangeText={setFeedback}
-//                     />
-//                     <TouchableOpacity
-//                       style={[styles.feedbackButton, submittingFeedback && { opacity: 0.6 }]}
-//                       onPress={handleFeedbackSubmit}
-//                       disabled={submittingFeedback}
-//                     >
-//                       <Text style={styles.feedbackButtonText}>
-//                         {submittingFeedback ? "Submitting..." : "Send Feedback"}
-//                       </Text>
-//                     </TouchableOpacity>
-//                   </View>
-//                 </View>
-//               </View>
-
-//               {/* ACCOUNT SECTION */}
-//               <Text style={[styles.sectionLabel, { marginTop: hp(3) }]}>Account</Text>
-//               <View style={styles.accountCard}>
-//                 {/* Delete Account */}
-//                 <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
-//                   <View style={styles.buttonContent}>
-//                     <Ionicons name="trash" size={fontScale(32)} color={"#ffffff"} />
-//                     <Text style={styles.deleteButtonText}>Delete Account</Text>
-//                   </View>
-//                   <Ionicons name="chevron-forward" size={fontScale(26)} color={"rgb(216, 216, 216)"} />
-//                 </TouchableOpacity>
-
-//                 {/* Logout */}
-//                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-//                   <View style={styles.buttonContent}>
-//                     <Ionicons name="log-out" size={fontScale(32)} color={"#5a5a5a"} />
-//                     <Text style={styles.logoutButtonText}>Logout</Text>
-//                   </View>
-//                   <Ionicons name="chevron-forward" size={fontScale(26)} color={"rgb(26, 26, 26)"} />
-//                 </TouchableOpacity>
-//               </View>
-
-//               <View style={{ height: hp(10) }} />
-//             </ScrollView>
-//           </KeyboardAvoidingView>
-
-//           {/* Conversion Modal */}
-//           {showConversionModal && (
-//             <View style={styles.modalOverlay}>
-//               <View style={styles.modalContainer}>
-//                 <Text style={styles.modalTitle}>Convert Points to Coins</Text>
-//                 <Text style={styles.modalSubtitle}>
-//                   You have {referralPoints} points
-//                 </Text>
-
-//                 <View style={styles.conversionInfo}>
-//                   <Ionicons name="information-circle" size={fontScale(20)} color="#3b48b9" />
-//                   <Text style={styles.conversionInfoText}>10 points = 1 coin</Text>
-//                 </View>
-
-//                 <TextInput
-//                   style={styles.modalInput}
-//                   placeholder="Enter points (multiples of 10)"
-//                   placeholderTextColor="#999"
-//                   keyboardType="numeric"
-//                   value={pointsToConvert}
-//                   onChangeText={setPointsToConvert}
-//                 />
-
-//                 {pointsToConvert && parseInt(pointsToConvert) >= 10 && (
-//                   <View style={styles.conversionPreview}>
-//                     <Text style={styles.conversionPreviewText}>
-//                       You will receive: {Math.floor(parseInt(pointsToConvert) / 10)} coins
-//                     </Text>
-//                   </View>
-//                 )}
-
-//                 <View style={styles.modalButtons}>
-//                   <TouchableOpacity
-//                     style={[styles.modalButton, styles.cancelButton]}
-//                     onPress={() => {
-//                       setShowConversionModal(false);
-//                       setPointsToConvert('');
-//                     }}
-//                   >
-//                     <Text style={styles.cancelButtonText}>Cancel</Text>
-//                   </TouchableOpacity>
-//                   <TouchableOpacity
-//                     style={[styles.modalButton, styles.confirmButton]}
-//                     onPress={handleConvertPoints}
-//                   >
-//                     <Text style={styles.confirmButtonText}>Convert</Text>
-//                   </TouchableOpacity>
-//                 </View>
-//               </View>
-//             </View>
-//           )}
-
-//           {/* Upload Avatar Loading Overlay */}
-//           {uploadingAvatar && (
-//             <View style={styles.loadingOverlay}>
-//               <View style={styles.loadingContainer}>
-//                 <ActivityIndicator size="large" color="#3b48b9" />
-//                 <Text style={styles.loadingText}>Uploading profile picture...</Text>
-//               </View>
-//             </View>
-//           )}
-//         </SafeAreaView>
-//       </View>
-//     </ImageBackground>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   backgroundImage: { flex: 1, width: "100%", height: "100%" },
-//   overlay: { flex: 1, backgroundColor: "rgba(12, 12, 12, 0.75)" },
-//   container: { flex: 1, marginHorizontal: wp(5), marginVertical: hp(1) },
-//   profileHeader: { alignItems: "center", paddingVertical: hp(2) },
-//   avatarContainer: { position: "relative", marginBottom: hp(1) },
-//   avatar: {
-//     width: wp(20), height: wp(20), borderRadius: wp(10),
-//     backgroundColor: "#3b48b9", justifyContent: "center", alignItems: "center",
-//     borderWidth: 3, borderColor: "rgba(255, 255, 255, 0.2)",
-//   },
-//   avatarImage: {
-//     width: wp(20), height: wp(20), borderRadius: wp(10),
-//     borderWidth: 3, borderColor: "rgba(255, 255, 255, 0.2)",
-//   },
-//   editAvatarButton: {
-//     position: "absolute", bottom: 0, right: 0, backgroundColor: "#4d5aee",
-//     width: wp(7), height: wp(7), borderRadius: wp(3.5),
-//     justifyContent: "center", alignItems: "center",
-//     borderWidth: 2, borderColor: "rgba(26, 26, 31, 0.95)",
-//   },
-//   username: { color: "white", fontSize: fontScale(20), fontWeight: "700", marginBottom: hp(0.2) },
-//   userId: { color: "rgba(180, 180, 180, 0.7)", fontSize: fontScale(11), fontWeight: "500" },
-//   text: { color: "white", fontSize: fontScale(24), fontWeight: "bold", marginBottom: hp(2) },
-//   scrollContent: { gap: hp(1.5), paddingRight: wp(4), alignItems: "flex-start", paddingBottom: hp(5) },
-//   sectionLabel: { color: "#b0b0b0e4", fontSize: fontScale(16), marginBottom: hp(0.5) },
-//   card: {
-//     backgroundColor: "rgba(18, 18, 18, 0.05)", width: "100%", marginTop: hp(0.1),
-//     borderRadius: wp(2.5), paddingHorizontal: wp(2.5), paddingVertical: hp(2),
-//     gap: hp(1.5), borderRightColor: "rgba(23, 23, 23, 0.24)",
-//   },
-//   emailContainer: { justifyContent: "space-between", flexDirection: "row", alignItems: "center", gap: wp(5), marginBottom: hp(0.5) },
-//   emailLabel: { fontSize: fontScale(16), color: "#757575", fontWeight: "500" },
-//   emailValue: { fontSize: fontScale(14), color: "rgba(180, 180, 180, 0.87)", fontWeight: "400" },
-//   buttonSpacing: { marginTop: hp(1.5) },
-//   actionButton: {
-//     width: "100%", backgroundColor: "#3b48b9", paddingVertical: hp(1),
-//     paddingHorizontal: wp(2.5), borderRadius: wp(2.5), flexDirection: "row",
-//     alignItems: "center", justifyContent: "space-between",
-//     shadowColor: "rgba(0, 0, 0, 0.05)", shadowOpacity: 0.5, elevation: 10,
-//     shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
-//   },
-//   buttonContent: { flexDirection: "row", alignItems: "center", gap: wp(7) },
-//   buttonText: { fontSize: fontScale(15), fontWeight: "500", color: "#ffffff" },
-//   referralSection: { marginTop: hp(2.5), paddingTop: hp(2.5), borderTopWidth: 1, borderTopColor: "rgba(255, 255, 255, 0.1)" },
-//   referralTitle: { fontSize: fontScale(16), fontWeight: "500", color: "#757575", marginBottom: hp(1.5) },
-//   referralCodeContainer: { flexDirection: "row", gap: wp(2.5) },
-//   codeBox: {
-//     flex: 1, backgroundColor: "rgba(59, 72, 185, 0.2)", borderWidth: 1,
-//     borderColor: "#3b48b9", borderRadius: wp(2.5), paddingVertical: hp(1.5),
-//     paddingHorizontal: wp(4), flexDirection: "row", alignItems: "center",
-//   },
-//   codeText: { fontSize: fontScale(16), fontWeight: "700", color: "#ffffff", letterSpacing: 1 },
-//   copyButton: {
-//     backgroundColor: "#3b48b9", paddingHorizontal: wp(4), borderRadius: wp(2.5),
-//     flexDirection: "row", alignItems: "center", gap: wp(1.5),
-//     shadowColor: "rgba(0, 0, 0, 0.05)", shadowOpacity: 0.5, elevation: 10,
-//     shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
-//   },
-//   copyButtonText: { color: "#ffffff", fontSize: fontScale(14), fontWeight: "600" },
-//   referralSubtext: { fontSize: fontScale(12), color: "rgba(180, 180, 180, 0.7)", marginTop: hp(1) },
-//   ratingSection: { marginTop: hp(1.5) },
-//   ratingTitle: { fontSize: fontScale(16), fontWeight: "500", color: "#707070" },
-//   starsRow: { marginTop: hp(1), flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: wp(2) },
-//   feedbackContainer: { marginTop: hp(2) },
-//   feedbackTitle: { fontSize: fontScale(16), fontWeight: "500", color: "#707070", marginBottom: hp(1) },
-//   feedbackInput: {
-//     borderRadius: wp(2.5), marginBottom: hp(1.5), backgroundColor: "rgba(42, 42, 42, 0.5)",
-//     paddingHorizontal: wp(3), paddingVertical: hp(1.5), color: "#ffffff",
-//     fontSize: fontScale(14), borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.1)",
-//     minHeight: hp(10), textAlignVertical: "top",
-//   },
-//   feedbackButton: { backgroundColor: "#3b48b9", paddingVertical: hp(1.2), borderRadius: wp(2.5), alignItems: "center" },
-//   feedbackButtonText: { color: "#ffffff", fontSize: fontScale(14), fontWeight: "600" },
-//   accountCard: {
-//     backgroundColor: "rgba(59, 59, 58, 0.17)", width: "100%", marginTop: hp(2),
-//     borderRadius: wp(5), paddingHorizontal: wp(2.5), paddingVertical: hp(2.5), gap: hp(2.5),
-//   },
-//   deleteButton: {
-//     width: "100%", backgroundColor: "#aa2323", paddingVertical: hp(1.2),
-//     paddingHorizontal: wp(2.5), borderRadius: wp(2.5), flexDirection: "row",
-//     alignItems: "center", justifyContent: "space-between",
-//     shadowColor: "rgb(255, 62, 62)", shadowOpacity: 0.5, elevation: 10,
-//     shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
-//   },
-//   deleteButtonText: { fontSize: fontScale(18), fontWeight: "600", color: "#ffffff" },
-//   logoutButton: {
-//     width: "100%", backgroundColor: "#ffffff", paddingVertical: hp(1.2),
-//     paddingHorizontal: wp(2.5), borderRadius: wp(2.5), flexDirection: "row",
-//     alignItems: "center", justifyContent: "space-between",
-//     shadowColor: "rgba(255, 255, 255, 0.04)", shadowOpacity: 0.5, elevation: 10,
-//     shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
-//   },
-//   logoutButtonText: { fontSize: fontScale(18), fontWeight: "600", color: "#1b1b1b" },
-
-//   // Rewards section
-//   rewardsCard: {
-//     backgroundColor: "rgba(18, 18, 18, 0.5)", width: "100%", marginTop: hp(0.1),
-//     borderRadius: wp(2.5), paddingHorizontal: wp(4), paddingVertical: hp(2.5),
-//     borderWidth: 1, borderColor: "rgba(59, 72, 185, 0.3)",
-//   },
-//   rewardRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: hp(2) },
-//   rewardItem: { flexDirection: "row", alignItems: "center", gap: wp(3), flex: 1 },
-//   rewardIconContainer: {
-//     width: wp(12), height: wp(12), borderRadius: wp(6),
-//     backgroundColor: "rgba(59, 72, 185, 0.2)", justifyContent: "center", alignItems: "center",
-//   },
-//   rewardLabel: { fontSize: fontScale(12), color: "#b0b0b0", fontWeight: "500" },
-//   rewardValue: { fontSize: fontScale(24), color: "#ffffff", fontWeight: "700" },
-//   convertButton: {
-//     backgroundColor: "#3b48b9", paddingVertical: hp(1.5), borderRadius: wp(2.5),
-//     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: wp(2),
-//     marginBottom: hp(1.5),
-//   },
-//   convertButtonText: { color: "#ffffff", fontSize: fontScale(14), fontWeight: "600" },
-//   rewardHint: { fontSize: fontScale(11), color: "rgba(180, 180, 180, 0.7)", textAlign: "center" },
-//   rouletteButton: {
-//     backgroundColor: "rgba(245, 158, 11, 0.3)", paddingVertical: hp(1.5),
-//     borderRadius: wp(2.5), flexDirection: "row", alignItems: "center",
-//     justifyContent: "center", gap: wp(2), marginTop: hp(1.5),
-//     borderWidth: 1, borderColor: "#f59e0b",
-//   },
-//   rouletteButtonText: { color: "#ffffff", fontSize: fontScale(14), fontWeight: "600" },
-
-//   // Modal styles
-//   modalOverlay: {
-//     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-//     backgroundColor: "rgba(0, 0, 0, 0.8)", justifyContent: "center", alignItems: "center",
-//   },
-//   modalContainer: {
-//     backgroundColor: "rgba(26, 26, 31, 0.98)", borderRadius: wp(4),
-//     paddingHorizontal: wp(6), paddingVertical: hp(3), width: wp(85),
-//     borderWidth: 1, borderColor: "rgba(59, 72, 185, 0.5)",
-//   },
-//   modalTitle: {
-//     fontSize: fontScale(20), fontWeight: "700", color: "#ffffff",
-//     textAlign: "center", marginBottom: hp(1),
-//   },
-//   modalSubtitle: {
-//     fontSize: fontScale(14), color: "#b0b0b0", textAlign: "center", marginBottom: hp(2),
-//   },
-//   conversionInfo: {
-//     flexDirection: "row", alignItems: "center", justifyContent: "center",
-//     gap: wp(2), backgroundColor: "rgba(59, 72, 185, 0.2)",
-//     paddingVertical: hp(1), paddingHorizontal: wp(3), borderRadius: wp(2),
-//     marginBottom: hp(2),
-//   },
-//   conversionInfoText: { fontSize: fontScale(14), color: "#ffffff", fontWeight: "500" },
-//   modalInput: {
-//     backgroundColor: "rgba(255, 255, 255, 0.1)", borderRadius: wp(2.5),
-//     paddingHorizontal: wp(4), paddingVertical: hp(1.5), color: "#ffffff",
-//     fontSize: fontScale(16), borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.2)",
-//     marginBottom: hp(2),
-//   },
-//   conversionPreview: {
-//     backgroundColor: "rgba(245, 158, 11, 0.2)", paddingVertical: hp(1),
-//     paddingHorizontal: wp(3), borderRadius: wp(2), marginBottom: hp(2),
-//     borderWidth: 1, borderColor: "#f59e0b",
-//   },
-//   conversionPreviewText: {
-//     fontSize: fontScale(14), color: "#f59e0b", fontWeight: "600", textAlign: "center",
-//   },
-//   modalButtons: { flexDirection: "row", gap: wp(3) },
-//   modalButton: {
-//     flex: 1, paddingVertical: hp(1.5), borderRadius: wp(2.5),
-//     alignItems: "center", justifyContent: "center",
-//   },
-//   cancelButton: { backgroundColor: "rgba(255, 255, 255, 0.1)" },
-//   cancelButtonText: { color: "#ffffff", fontSize: fontScale(14), fontWeight: "600" },
-//   confirmButton: { backgroundColor: "#3b48b9" },
-//   confirmButtonText: { color: "#ffffff", fontSize: fontScale(14), fontWeight: "700" },
-
-//   // Loading overlay
-//   loadingOverlay: {
-//     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-//     backgroundColor: "rgba(0, 0, 0, 0.7)", justifyContent: "center", alignItems: "center",
-//   },
-//   loadingContainer: {
-//     backgroundColor: "rgba(26, 26, 31, 0.95)", borderRadius: wp(4),
-//     paddingHorizontal: wp(8), paddingVertical: hp(3), alignItems: "center",
-//   },
-//   loadingText: {
-//     color: "#ffffff", fontSize: fontScale(14), marginTop: hp(2), fontWeight: "500",
-//   },
-// });
-
-import { submitFeedback } from "@/lib/firestoreService";
-import { fontScale, hp, wp } from "@/lib/responsive";
-import { uploadProfilePicture } from "@/lib/storageService";
+import { Avatar } from "@/constant/Avatar";
+import { hp, wp } from "@/lib/responsive";
 import {
-  signOut as customSignOut,
-  deleteUserAccount,
-  getCurrentUser,
-  getUserAvatar,
+  convertReferralPointsToCoins,
+  getUserBadges,
+  getUserReferralStats,
+  signOut,
   updateUserAvatar,
+  deleteUserAccount,
 } from "@/lib/supabaseAuthService";
+import { submitFeedback, hasSubmittedFeedbackToday } from "@/lib/supabaseFeedbackService";
 import { useUser } from "@/lib/userContext";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import * as ImagePicker from "expo-image-picker";
+import { ImageBackground } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
+  FlatList,
   Image,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
+  Modal,
   ScrollView,
-  Share,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-let ImageCropper: any = null;
-try {
-  ImageCropper = require("expo-image-cropper");
-} catch (e) {
-  console.log("expo-image-cropper not available");
-}
+const { width, height } = Dimensions.get("window");
+
+// Rank image mapping
+const getRankImage = (rank: string) => {
+  const rankImages: { [key: string]: any } = {
+    beginner: require("@/assets/ranks/beginner.png"),
+    advanced: require("@/assets/ranks/advanced.png"),
+    inter: require("@/assets/ranks/inter.png"),
+    pro: require("@/assets/ranks/pro.png"),
+    legend: require("@/assets/ranks/legend.png"),
+    crown1: require("@/assets/ranks/crown1.png"),
+    crown2: require("@/assets/ranks/crown2.png"),
+    top: require("@/assets/ranks/top.png"),
+    second: require("@/assets/ranks/second.png"),
+    last: require("@/assets/ranks/last.png"),
+  };
+  return rankImages[rank] || rankImages["beginner"];
+};
+
+// Default avatar (Builder - ID 3)
+const DEFAULT_AVATAR_ID = 3;
 
 export default function Profile() {
   const router = useRouter();
-  const { userData, updateAvatar } = useUser();
-
-  const [avatarUri, setAvatarUri] = useState<string | null>(userData.avatarUri);
+  const { userData, setUserData } = useUser();
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [tempSelectedAvatar, setTempSelectedAvatar] = useState(null);
+  const [imageError, setImageError] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
-  const [referralCode, setReferralCode] = useState("Loading...");
-  const [referralCount, setReferralCount] = useState(0);
-  const [referralPoints, setReferralPoints] = useState(0);
-  const [coins, setCoins] = useState(0);
-  const [submittingFeedback, setSubmittingFeedback] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [showConversionModal, setShowConversionModal] = useState(false);
-  const [pointsToConvert, setPointsToConvert] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [userStats, setUserStats] = useState({
+    referrals: 0,
+    referralPoints: 0,
+    badges: 0,
+  });
 
-  // ─── Load user profile from Supabase ───────────────────────────────────
+  // Load saved avatar from userData when it changes
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        // Get current user with referral code
-        const user = await getCurrentUser();
-        if (user?.referral_code) {
-          setReferralCode(user.referral_code);
-        } else {
-          // Generate temporary referral code if not available
-          const tempCode = generateTempReferralCode();
-          setReferralCode(tempCode);
-        }
+    const loadSavedAvatar = async () => {
+      // Check both avatar_url and avatarUri for compatibility
+      const avatarId = userData?.avatar_url || userData?.avatarUri;
+      
+      if (avatarId) {
+        console.log("Found avatar ID in userData:", avatarId);
 
-        setReferralCount(0);
-        setReferralPoints(0);
-        setCoins(0);
+        // Try to parse as number (avatar ID)
+        const savedAvatarId = parseInt(avatarId);
 
-        // Load avatar from Supabase
-        try {
-          const avatarUrl = await getUserAvatar();
-          if (avatarUrl) {
-            setAvatarUri(avatarUrl);
-            updateAvatar(avatarUrl);
+        if (!isNaN(savedAvatarId)) {
+          const savedAvatar = Avatar.find((a) => a.id === savedAvatarId);
+          if (savedAvatar) {
+            console.log(
+              "Loading saved avatar:",
+              savedAvatar.name,
+              "with ID:",
+              savedAvatar.id,
+            );
+            setSelectedAvatar(savedAvatar);
+          } else {
+            console.log(
+              "No avatar found with ID:",
+              savedAvatarId,
+              "using default",
+            );
+            setSelectedAvatar(Avatar.find((a) => a.id === DEFAULT_AVATAR_ID));
           }
-        } catch (avatarError) {
-          console.log("Could not load avatar from Supabase:", avatarError);
+        } else {
+          console.log("avatar_id is not a number, using default");
+          setSelectedAvatar(Avatar.find((a) => a.id === DEFAULT_AVATAR_ID));
         }
-      } catch (e) {
-        console.error("Error loading profile:", e);
-        const fallbackCode = generateTempReferralCode();
-        setReferralCode(fallbackCode);
+      } else {
+        console.log("No avatar ID found in userData, using default");
+        setSelectedAvatar(Avatar.find((a) => a.id === DEFAULT_AVATAR_ID));
       }
     };
-    loadProfile();
-  }, []);
 
-  const generateTempReferralCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let code = "";
-    for (let i = 0; i < 8; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    loadSavedAvatar();
+  }, [userData?.avatar_url, userData?.avatarUri]);
+
+  // Fetch user stats (referrals, points, badges)
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!userData?.id) return;
+
+      try {
+        // Get referral stats
+        const { referrals_count, referral_points } = await getUserReferralStats(
+          userData.id,
+        );
+
+        // Get badges
+        const badges = await getUserBadges(userData.id);
+
+        setUserStats({
+          referrals: referrals_count,
+          referralPoints: referral_points,
+          badges: badges,
+        });
+      } catch (error) {
+        console.log("Error fetching user stats:", error);
+      }
+    };
+
+    fetchUserStats();
+  }, [userData]);
+
+  // Get referral code from userData
+  const referralCode = userData?.referral_code || "";
+
+  // Debug logs
+  useEffect(() => {
+    console.log("User data:", userData);
+    console.log("User referral code:", userData?.referral_code);
+    console.log("User avatar_url:", userData?.avatar_url);
+    console.log("User avatarUri:", userData?.avatarUri);
+    console.log("Selected avatar:", selectedAvatar?.name);
+  }, [userData, selectedAvatar]);
+
+  const handleEditAvatar = () => {
+    setTempSelectedAvatar(selectedAvatar);
+    setModalVisible(true);
+  };
+
+  const handleAvatarSelect = (avatar) => {
+    setTempSelectedAvatar(avatar);
+  };
+
+  const handleConfirmSelection = async () => {
+    if (tempSelectedAvatar) {
+      setIsSavingAvatar(true);
+      try {
+        console.log("Saving avatar with ID:", tempSelectedAvatar.id);
+
+        // Save avatar ID to Supabase
+        await updateUserAvatar(tempSelectedAvatar.id.toString());
+
+        // Update local state
+        setSelectedAvatar(tempSelectedAvatar);
+        setImageError(false);
+
+        // Update userData in context with both fields for compatibility
+        if (userData) {
+          const updatedUserData = {
+            ...userData,
+            avatar_url: tempSelectedAvatar.id.toString(),
+            avatarUri: tempSelectedAvatar.id.toString(),
+          };
+          setUserData(updatedUserData);
+          console.log("Updated userData with new avatar:", updatedUserData);
+        }
+
+        Alert.alert("Success", "Avatar updated successfully!");
+      } catch (error) {
+        console.log("Error saving avatar:", error);
+        Alert.alert("Error", "Failed to save avatar. Please try again.");
+      } finally {
+        setIsSavingAvatar(false);
+        setModalVisible(false);
+      }
     }
-    return code;
   };
 
-  const copyToClipboard = async () => {
-    // Use web URL for referral
-    const webUrl = `https://skibag.vercel.app/?ref=${referralCode}`;
-    await Clipboard.setStringAsync(webUrl);
-    Alert.alert("Copied!", "Referral link copied to clipboard");
-  };
+  const handleConvertPoints = async () => {
+    if (!userData?.id) return;
 
-  // ─── Share Referral Link ──────────────────────────────────────────────────
-  const handleShareReferral = async () => {
+    setIsConverting(true);
     try {
-      // Use web URL for referral
-      const webUrl = `https://skibag.vercel.app/?ref=${referralCode}`;
+      const result = await convertReferralPointsToCoins(userData.id);
 
-      await Share.share({
-        message: `Join me on Skibag and get bonus coins! Use my referral link: ${webUrl}`,
-      });
-    } catch (e: any) {
-      Alert.alert("Error", e.message);
-    }
-  };
+      if (result.success) {
+        // Update userData with new coins
+        if (userData) {
+          const updatedUserData = {
+            ...userData,
+            coins: result.newCoins,
+          };
+          setUserData(updatedUserData);
+        }
 
-  const handleStarPress = (star: number) => {
-    if (rating === star) {
-      setRating(0);
-    } else {
-      setRating(star);
-    }
-  };
+        // Refresh stats
+        const { referrals_count, referral_points } = await getUserReferralStats(
+          userData.id,
+        );
+        setUserStats((prev) => ({
+          ...prev,
+          referralPoints: referral_points,
+        }));
 
-  // ─── Submit Feedback ──────────────────────────────────────────────────────
-  const handleFeedbackSubmit = async () => {
-    if (!feedback.trim()) {
-      Alert.alert(
-        "Empty Feedback",
-        "Please enter your feedback before submitting.",
-      );
-      return;
-    }
-    if (rating === 0) {
-      Alert.alert(
-        "Rating Required",
-        "Please select a star rating before submitting.",
-      );
-      return;
-    }
-    try {
-      setSubmittingFeedback(true);
-
-      // Determine category based on rating
-      const category =
-        rating >= 4 ? "feature" : rating <= 2 ? "bug" : "general";
-
-      // Submit feedback to Supabase
-      await submitFeedback(feedback, rating, category);
-
-      Alert.alert("Thank you!", "Your feedback has been submitted.");
-      setFeedback("");
-      setRating(0);
-    } catch (e: any) {
-      Alert.alert("Error", e.message || "Failed to submit feedback");
+        Alert.alert("Success", result.message);
+      } else {
+        Alert.alert("Info", result.message);
+      }
+    } catch (error) {
+      console.log("Error converting points:", error);
+      Alert.alert("Error", "Failed to convert points");
     } finally {
-      setSubmittingFeedback(false);
+      setIsConverting(false);
     }
   };
 
-  // ─── Logout ────────────────────────────────────────────────────────────────
+  const handleCancelSelection = () => {
+    setTempSelectedAvatar(null);
+    setModalVisible(false);
+  };
+
+  const handleImageError = () => {
+    console.log("Image failed to load");
+    setImageError(true);
+  };
+
+  const handleCopyCode = async () => {
+    await Clipboard.setStringAsync(referralCode);
+    Alert.alert("Success", "Referral code copied to clipboard!");
+  };
+
+  const handlePrivacyPolicy = () => {
+    router.push("/privacy-policy");
+  };
+
+  const handleTermsOfUse = () => {
+    router.push("/terms-of-use");
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone. All your data including feedback, referrals, and game progress will be permanently lost.",
+      [
+        { 
+          text: "Cancel", 
+          style: "cancel" 
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            // Second confirmation for extra safety
+            Alert.alert(
+              "Final Confirmation",
+              "This is your last chance. Are you absolutely sure you want to permanently delete your account?",
+              [
+                { 
+                  text: "No, keep my account", 
+                  style: "cancel" 
+                },
+                {
+                  text: "Yes, delete everything",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      setIsDeleting(true);
+                      
+                      const result = await deleteUserAccount();
+                      
+                      if (result.success) {
+                        // Clear user data from context
+                        setUserData(null);
+                        
+                        Alert.alert(
+                          "Account Deleted",
+                          "Your account has been successfully deleted. We're sorry to see you go!",
+                          [
+                            {
+                              text: "OK",
+                              onPress: () => router.replace("/(auth)")
+                            }
+                          ]
+                        );
+                      } else {
+                        Alert.alert(
+                          "Error", 
+                          result.error || "Failed to delete account. Please try again or contact support."
+                        );
+                      }
+                    } catch (error) {
+                      console.log("Delete account error:", error);
+                      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+                    } finally {
+                      setIsDeleting(false);
+                    }
+                  }
+                }
+              ]
+            );
+          }
+        },
+      ]
+    );
+  };
+
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
       { text: "Cancel", style: "cancel" },
@@ -944,180 +338,146 @@ export default function Profile() {
         style: "destructive",
         onPress: async () => {
           try {
-            // Sign out from custom auth
-            await customSignOut();
-
-            // Navigate to onboard screen
-            router.replace("/(onboardScreen)");
-          } catch (e: any) {
-            Alert.alert("Error", e.message);
+            setIsLoading(true);
+            await signOut();
+            setUserData(null);
+            router.replace("/(auth)");
+          } catch (error) {
+            console.log("Logout error:", error);
+            Alert.alert("Error", "Failed to logout");
+          } finally {
+            setIsLoading(false);
           }
         },
       },
     ]);
   };
 
-  // ─── Delete Account ────────────────────────────────────────────────────────
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      "Delete Account",
-      "This will permanently delete your account and all your data. This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteUserAccount();
-              Alert.alert("Success", "Your account has been deleted.");
-              router.replace("/(auth)");
-            } catch (e: any) {
-              Alert.alert(
-                "Error",
-                e.message || "Failed to delete account. Please try again.",
-              );
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  const pickImage = async (useCamera: boolean) => {
-    try {
-      if (useCamera) {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert(
-            "Permission Required",
-            "Camera permission is required to take photos.",
-          );
-          return;
-        }
-      } else {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert(
-            "Permission Required",
-            "Photo library permission is required to select photos.",
-          );
-          return;
-        }
-      }
-
-      const result = useCamera
-        ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            quality: 0.8,
-            aspect: [1, 1],
-          })
-        : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            quality: 0.8,
-            aspect: [1, 1],
-          });
-
-      if (!result.canceled && result.assets[0]) {
-        const localUri = result.assets[0].uri;
-
-        try {
-          // Get current user
-          const user = await getCurrentUser();
-          if (!user) {
-            throw new Error("User not authenticated");
-          }
-
-          // Update local state immediately for better UX
-          setAvatarUri(localUri);
-          setUploadingAvatar(true);
-          updateAvatar(localUri);
-
-          // Try to upload to Supabase Storage
-          try {
-            const uploadedUrl = await uploadProfilePicture(localUri, user.id);
-
-            // Save the URL to Supabase database
-            await updateUserAvatar(uploadedUrl);
-
-            // Update local context with the remote URL
-            updateAvatar(uploadedUrl);
-            setAvatarUri(uploadedUrl);
-
-            Alert.alert("Success", "Profile picture updated!");
-          } catch (uploadError) {
-            console.log("Upload failed, keeping local avatar:", uploadError);
-            Alert.alert("Success", "Profile picture updated locally!");
-          }
-        } catch (error) {
-          console.error("Error updating avatar:", error);
-          // Keep the local avatar even if upload fails
-          Alert.alert(
-            "Success",
-            "Profile picture updated locally. Will sync when connected.",
-          );
-        } finally {
-          setUploadingAvatar(false);
-        }
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to pick image. Please try again.");
-    }
-  };
-
-  const handleConvertPoints = async () => {
-    const points = parseInt(pointsToConvert);
-
-    if (isNaN(points) || points <= 0) {
-      Alert.alert("Invalid Amount", "Please enter a valid number of points");
+  const handleSubmitFeedback = async () => {
+    if (!feedback.trim()) {
+      Alert.alert("Error", "Please enter your feedback message");
       return;
     }
 
-    if (points % 10 !== 0) {
-      Alert.alert("Invalid Amount", "Points must be in multiples of 10");
+    if (!userData?.id) {
+      Alert.alert("Error", "User not authenticated");
       return;
     }
 
-    if (points > referralPoints) {
+    // Optional: Check if user already submitted feedback today
+    const hasSubmitted = await hasSubmittedFeedbackToday(userData.id);
+    if (hasSubmitted) {
       Alert.alert(
-        "Insufficient Points",
-        `You only have ${referralPoints} points`,
+        "Already Submitted",
+        "You have already submitted feedback today. Thank you for your support!"
       );
       return;
     }
 
+    setIsSubmittingFeedback(true);
     try {
-      // TODO: Implement convertPointsToCoins with your backend
-      // const coinsEarned = await yourBackend.convertPointsToCoins(points);
+      // You can set a category if you want, e.g., "general", "bug", "feature", etc.
+      const category = "general"; // or make this dynamic based on user selection
+      
+      const result = await submitFeedback(
+        userData.id,
+        feedback,
+        rating > 0 ? rating : null, // Only send rating if user selected one
+        category
+      );
 
-      Alert.alert("Info", "Points conversion needs to be implemented");
-      setPointsToConvert("");
-      setShowConversionModal(false);
-    } catch (error: any) {
-      Alert.alert("Error", error.message || "Failed to convert points");
+      if (result.success) {
+        console.log("Feedback submitted:", { rating, feedback });
+        Alert.alert(
+          "Thank You!",
+          "Your feedback has been submitted successfully. We appreciate your input!"
+        );
+        // Reset form
+        setRating(0);
+        setFeedback("");
+      } else {
+        Alert.alert("Error", result.error || "Failed to submit feedback");
+      }
+    } catch (error) {
+      console.log("Error submitting feedback:", error);
+      Alert.alert("Error", "Failed to submit feedback. Please try again.");
+    } finally {
+      setIsSubmittingFeedback(false);
     }
   };
 
-  const showImagePickerOptions = () => {
-    Alert.alert(
-      "Change Profile Photo",
-      "Choose an option",
-      [
-        { text: "Take Photo", onPress: () => pickImage(true) },
-        { text: "Choose from Gallery", onPress: () => pickImage(false) },
-        { text: "Cancel", style: "cancel" },
-      ],
-      { cancelable: true },
-    );
+  const getAvatarImageStyle = (avatar) => {
+    const baseStyle = styles.avatarImage;
+    if (avatar.id === 5 || avatar.id === 6 || avatar.id === 7) {
+      return [baseStyle, styles.largeAvatarImage];
+    }
+    return baseStyle;
   };
+
+  const renderAvatarItem = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.avatarItem,
+        tempSelectedAvatar?.id === item.id && styles.selectedAvatarItem,
+      ]}
+      onPress={() => handleAvatarSelect(item)}
+    >
+      <LinearGradient
+        colors={item.gradientColors || [item.bgColor, item.bgColor]}
+        style={styles.avatarGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <Image
+          source={item.image}
+          style={styles.avatarItemImage}
+          resizeMode="contain"
+          onError={(error) => console.log(`Error loading ${item.name}:`, error)}
+        />
+        {tempSelectedAvatar?.id === item.id && (
+          <View style={styles.checkmarkContainer}>
+            <Ionicons name="checkmark-circle" size={30} color="#4CAF50" />
+          </View>
+        )}
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+
+  const renderStars = () => {
+    let stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <TouchableOpacity key={i} onPress={() => setRating(i)} disabled={isSubmittingFeedback}>
+          <Ionicons
+            name={i <= rating ? "star" : "star-outline"}
+            size={32}
+            color={i <= rating ? "#FFD700" : "#666"}
+          />
+        </TouchableOpacity>,
+      );
+    }
+    return stars;
+  };
+
+  // Show loading state while fetching user data or avatar
+  if (!userData || !selectedAvatar) {
+    return (
+      <ImageBackground
+        source={require("@/assets/images/bg3.jpg")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={[styles.overlay, styles.loadingContainer]}>
+          <ActivityIndicator size="large" color="#5929d4" />
+        </View>
+      </ImageBackground>
+    );
+  }
 
   return (
     <ImageBackground
       source={require("@/assets/images/bg3.jpg")}
-      style={styles.backgroundImage}
+      style={styles.background}
       resizeMode="cover"
     >
       <StatusBar
@@ -1125,878 +485,809 @@ export default function Profile() {
         translucent
         backgroundColor="transparent"
       />
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.container} edges={["top"]}>
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={100}
-          >
-            {/* Profile Header */}
-            <View style={styles.profileHeader}>
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={true}
+          contentContainerStyle={styles.scrollViewContent}
+          bounces={true}
+          alwaysBounceVertical={true}
+        >
+          <View style={styles.content}>
+            <Text style={styles.headerText}>Profile</Text>
+
+            {/* Profile Card */}
+            <LinearGradient
+              colors={
+                selectedAvatar.gradientColors || [
+                  selectedAvatar.bgColor,
+                  selectedAvatar.bgColor,
+                ]
+              }
+              style={styles.profileCard}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
               <View style={styles.avatarContainer}>
-                <TouchableOpacity onPress={showImagePickerOptions}>
-                  {avatarUri ? (
+                {!imageError ? (
+                  <Image
+                    source={selectedAvatar.image}
+                    style={getAvatarImageStyle(selectedAvatar)}
+                    resizeMode="contain"
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <View style={[styles.avatarImage, styles.errorContainer]}>
+                    <Ionicons name="image-outline" size={40} color="#666" />
+                    <Text style={styles.errorText}>Failed to load</Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.infoWhiteContainer}>
+                <Text style={styles.scoreText}>#{userData.coins || 0}</Text>
+                <Text style={styles.nameText}>
+                  {userData.username || "Player"}
+                </Text>
+
+                <View style={styles.statsContainer}>
+                  <View style={styles.statItem}>
                     <Image
-                      source={{ uri: avatarUri }}
-                      style={styles.avatarImage}
+                      source={getRankImage(userData.rank || "beginner")}
+                      style={styles.rankIcon}
+                      resizeMode="contain"
                     />
+                    <Text style={styles.rankText}>
+                      {userData.rank
+                        ? userData.rank.charAt(0).toUpperCase() +
+                          userData.rank.slice(1)
+                        : "Beginner"}
+                    </Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Ionicons name="flame" size={25} color="#FF6B00" />
+                    <Text style={styles.statText}>
+                      {userData.day_streak || 0}
+                    </Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={handleEditAvatar}
+                  activeOpacity={0.7}
+                  disabled={isSavingAvatar}
+                >
+                  {isSavingAvatar ? (
+                    <ActivityIndicator size="small" color="#262626" />
                   ) : (
-                    <View style={styles.avatar}>
-                      <Ionicons
-                        name="person"
-                        size={fontScale(36)}
-                        color="#ffffff"
-                      />
-                    </View>
+                    <>
+                      <Ionicons name="refresh" size={20} color="#262626" />
+                      <Text style={styles.editButtonText}>Edit avatar</Text>
+                    </>
                   )}
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.editAvatarButton}
-                  onPress={showImagePickerOptions}
-                >
-                  <Ionicons
-                    name="camera"
-                    size={fontScale(12)}
-                    color="#ffffff"
-                  />
-                </TouchableOpacity>
               </View>
-              <Text style={styles.username}>
-                {userData?.username ?? "Player"}
-              </Text>
-              <Text style={styles.userId}>{userData?.email ?? ""}</Text>
-            </View>
+            </LinearGradient>
 
-            <View
-              style={{
-                alignItems: "flex-start",
-                marginVertical: hp(1),
-                alignSelf: "center",
-              }}
-            >
-              <Text style={styles.text}>Profile</Text>
-            </View>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              {/* POINTS & COINS SECTION */}
-              <Text style={styles.sectionLabel}>Rewards</Text>
-              <View style={styles.rewardsCard}>
-                <View style={styles.rewardRow}>
-                  <View style={styles.rewardItem}>
-                    <View style={styles.rewardIconContainer}>
-                      <Ionicons
-                        name="star"
-                        size={fontScale(28)}
-                        color="#f59e0b"
-                      />
-                    </View>
-                    <View>
-                      <Text style={styles.rewardLabel}>Referral Points</Text>
-                      <Text style={styles.rewardValue}>{referralPoints}</Text>
-                    </View>
+            {/* Referrals Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Referrals & Achievements</Text>
+              <View style={styles.referralsContainer}>
+                <View style={styles.referralCard}>
+                  <View style={styles.referralIconContainer}>
+                    <Ionicons name="people" size={20} color="#4CAF50" />
                   </View>
-                  <View style={styles.rewardItem}>
-                    <View style={styles.rewardIconContainer}>
-                      <Image
-                        source={require("@/assets/badges/coin.png")}
-                        style={{ width: wp(8), height: wp(8) }}
-                      />
-                    </View>
-                    <View>
-                      <Text style={styles.rewardLabel}>Coins</Text>
-                      <Text style={styles.rewardValue}>{coins}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {referralPoints >= 10 && (
-                  <TouchableOpacity
-                    style={styles.convertButton}
-                    onPress={() => setShowConversionModal(true)}
-                  >
-                    <Ionicons
-                      name="swap-horizontal"
-                      size={fontScale(20)}
-                      color="#ffffff"
-                    />
-                    <Text style={styles.convertButtonText}>
-                      Convert Points to Coins
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                <Text style={styles.rewardHint}>
-                  🎁 Earn 100 points for each referral • 10 points = 1 coin
-                </Text>
-
-                {coins >= 10 && (
-                  <TouchableOpacity
-                    style={styles.rouletteButton}
-                    onPress={() => router.push("/roulette")}
-                  >
-                    <Ionicons
-                      name="play-circle"
-                      size={fontScale(24)}
-                      color="#ffffff"
-                    />
-                    <Text style={styles.rouletteButtonText}>
-                      Play Roulette Game
-                    </Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={fontScale(20)}
-                      color="#ffffff"
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* GENERAL SECTION */}
-              <Text style={styles.sectionLabel}>General</Text>
-              <View style={styles.card}>
-                {/* Email Address */}
-                <View style={styles.emailContainer}>
-                  <Text style={styles.emailLabel}>Email address:</Text>
-                  <Text style={styles.emailValue}>
-                    {userData?.email ?? "No email"}
+                  <Text style={styles.referralLabel}>Referrals</Text>
+                  <Text style={styles.referralValue}>
+                    {userStats.referrals}
                   </Text>
                 </View>
 
-                {/* Language */}
-                <View style={styles.buttonSpacing}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => router.push("/language")}
-                  >
-                    <View style={styles.buttonContent}>
-                      <Ionicons
-                        name="globe"
-                        size={fontScale(24)}
-                        color={"#ffffff"}
-                      />
-                      <Text style={styles.buttonText}>Select Language</Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={fontScale(26)}
-                      color={"rgb(216, 216, 216)"}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Privacy Policy */}
-                <View style={styles.buttonSpacing}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => router.push("/privacy-policy")}
-                  >
-                    <View style={styles.buttonContent}>
-                      <Ionicons
-                        name="key"
-                        size={fontScale(24)}
-                        color={"#ffffff"}
-                      />
-                      <Text style={styles.buttonText}>Privacy Policy</Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={fontScale(26)}
-                      color={"rgb(216, 216, 216)"}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Terms of Use */}
-                <View style={styles.buttonSpacing}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => router.push("/terms-of-use")}
-                  >
-                    <View style={styles.buttonContent}>
-                      <Ionicons
-                        name="flag"
-                        size={fontScale(20)}
-                        color={"#ffffff"}
-                      />
-                      <Text style={styles.buttonText}>Terms of use</Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={fontScale(26)}
-                      color={"rgb(216, 216, 216)"}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Referral Code */}
-                <View style={styles.referralSection}>
-                  <Text style={styles.referralTitle}>Invite Friends</Text>
-                  <View style={styles.referralRow}>
-                    {/* Referral Link Field */}
-                    <TouchableOpacity
-                      style={styles.referralLinkBox}
-                      onPress={copyToClipboard}
-                    >
-                      <Text style={styles.referralLinkText} numberOfLines={1}>
-                        https://skibag.vercel.app/?ref={referralCode}
-                      </Text>
-                      <Ionicons
-                        name="copy-outline"
-                        size={fontScale(18)}
-                        color={"#ffffff"}
-                        style={{ marginLeft: wp(2) }}
-                      />
-                    </TouchableOpacity>
-                    {/* Share Button */}
-                    <TouchableOpacity
-                      onPress={handleShareReferral}
-                      style={styles.shareButton}
-                    >
-                      <Ionicons
-                        name="share-social-outline"
-                        size={fontScale(20)}
-                        color={"#ffffff"}
-                      />
-                      <Text style={styles.copyButtonText}>Share</Text>
-                    </TouchableOpacity>
+                <View style={styles.referralCard}>
+                  <View style={styles.referralIconContainer}>
+                    <Ionicons name="gift" size={20} color="#FF9800" />
                   </View>
+                  <Text style={styles.referralLabel}>Points</Text>
+                  <Text style={styles.referralValue}>
+                    {userStats.referralPoints}
+                  </Text>
                 </View>
 
-                {/* Rating */}
-                <View style={styles.ratingSection}>
-                  <Text style={styles.ratingTitle}>Rate Us</Text>
-                  <View style={styles.starsRow}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <TouchableOpacity
-                        key={star}
-                        onPress={() => handleStarPress(star)}
-                      >
+                <View style={styles.referralCard}>
+                  <View style={styles.referralIconContainer}>
+                    <Ionicons name="trophy" size={20} color="#9C27B0" />
+                  </View>
+                  <Text style={styles.referralLabel}>Badges</Text>
+                  <Text style={styles.referralValue}>{userStats.badges}</Text>
+                </View>
+              </View>
+
+              <View style={styles.warningContainer}>
+                <Ionicons name="warning" size={16} color="#FFA500" />
+                <Text style={styles.warningText}>
+                  {userStats.referralPoints >= 100
+                    ? "You have enough points to convert to coins!"
+                    : `Need ${100 - userStats.referralPoints} more points to convert to coins`}
+                </Text>
+              </View>
+
+              {userStats.referralPoints >= 100 && (
+                <TouchableOpacity
+                  style={styles.convertButton}
+                  onPress={handleConvertPoints}
+                  disabled={isConverting}
+                >
+                  <LinearGradient
+                    colors={["#4CAF50", "#45a049"]}
+                    style={styles.convertButtonGradient}
+                  >
+                    {isConverting ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <>
                         <Ionicons
-                          name="star"
-                          size={fontScale(24)}
-                          color={star <= rating ? "#f3893d" : "#e1e1e1ee"}
+                          name="swap-horizontal"
+                          size={20}
+                          color="white"
                         />
-                      </TouchableOpacity>
-                    ))}
+                        <Text style={styles.convertButtonText}>
+                          Convert {userStats.referralPoints} Points to Coins
+                        </Text>
+                      </>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Referral Code Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Your Referral Code</Text>
+              <View style={styles.referralCodeContainer}>
+                <Text style={styles.referralCodeText}>
+                  {referralCode || "No code yet"}
+                </Text>
+                {referralCode ? (
+                  <TouchableOpacity
+                    onPress={handleCopyCode}
+                    style={styles.copyButton}
+                  >
+                    <Ionicons name="copy-outline" size={18} color="#4CAF50" />
+                    <Text style={styles.copyButtonText}>Copy</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.copyButton}>
+                    <Text style={styles.copyButtonText}>Generating...</Text>
                   </View>
-                  <View style={styles.feedbackContainer}>
-                    <Text style={styles.feedbackTitle}>Feedback</Text>
-                    <TextInput
-                      placeholder="Enter your feedback"
-                      placeholderTextColor="rgb(169, 169, 167)"
-                      style={styles.feedbackInput}
-                      multiline
-                      numberOfLines={3}
-                      value={feedback}
-                      onChangeText={setFeedback}
-                    />
+                )}
+              </View>
+              <Text style={styles.referralInfoText}>
+                Share this code with friends. When they sign up, you get 10
+                points!
+              </Text>
+            </View>
+
+            {/* Legal Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Legal</Text>
+              <View style={styles.legalButtonsContainer}>
+                <TouchableOpacity
+                  style={styles.legalButton}
+                  onPress={handlePrivacyPolicy}
+                >
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={18}
+                    color="#4CAF50"
+                  />
+                  <Text style={styles.legalButtonText}>Privacy Policy</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.legalButton}
+                  onPress={handleTermsOfUse}
+                >
+                  <Ionicons
+                    name="document-text-outline"
+                    size={18}
+                    color="#4CAF50"
+                  />
+                  <Text style={styles.legalButtonText}>Terms of Use</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Rating & Feedback Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Rate Us</Text>
+              <View style={styles.ratingContainer}>
+                <View style={styles.starsContainer}>{renderStars()}</View>
+                <Text style={styles.ratingText}>
+                  {rating > 0
+                    ? `${rating} star${rating > 1 ? "s" : ""}`
+                    : "Tap to rate (optional)"}
+                </Text>
+              </View>
+
+              <Text style={styles.sectionSubtitle}>Feedback</Text>
+              <TextInput
+                style={styles.feedbackInput}
+                placeholder="Share your thoughts... (required)"
+                placeholderTextColor="#999"
+                value={feedback}
+                onChangeText={setFeedback}
+                multiline
+                numberOfLines={4}
+                editable={!isSubmittingFeedback}
+              />
+
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmitFeedback}
+                disabled={isSubmittingFeedback || !feedback.trim()}
+              >
+                <LinearGradient
+                  colors={["#4CAF50", "#45a049"]}
+                  style={styles.submitButtonGradient}
+                >
+                  {isSubmittingFeedback ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>Submit Feedback</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* Account Actions Section */}
+            <View style={styles.accountSectionContainer}>
+              <Text style={styles.sectionTitle}>Account</Text>
+              <View style={styles.accountButtonsContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.accountButton, 
+                    styles.deleteButton,
+                    isDeleting && styles.disabledButton
+                  ]}
+                  onPress={handleDeleteAccount}
+                  activeOpacity={0.7}
+                  disabled={isDeleting || isLoading}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color="#FF4444" />
+                  ) : (
+                    <>
+                      <Ionicons name="trash-outline" size={20} color="#FF4444" />
+                      <Text style={[styles.accountButtonText, styles.deleteButtonText]}>
+                        Delete Account
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.accountButton, 
+                    styles.logoutButton,
+                    isLoading && styles.disabledButton
+                  ]}
+                  onPress={handleLogout}
+                  activeOpacity={0.7}
+                  disabled={isLoading || isDeleting}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#FF9800" />
+                  ) : (
+                    <>
+                      <Ionicons name="log-out-outline" size={20} color="#FF9800" />
+                      <Text style={[styles.accountButtonText, styles.logoutButtonText]}>
+                        Logout
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Large bottom padding */}
+            <View style={styles.largeBottomPadding} />
+          </View>
+        </ScrollView>
+
+        {/* Avatar Selection Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={handleCancelSelection}
+        >
+          <TouchableWithoutFeedback onPress={handleCancelSelection}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Choose Your Avatar</Text>
+                    <TouchableOpacity onPress={handleCancelSelection}>
+                      <Ionicons name="close" size={24} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <FlatList
+                    data={Avatar}
+                    renderItem={renderAvatarItem}
+                    keyExtractor={(item) => item.id.toString()}
+                    numColumns={2}
+                    contentContainerStyle={styles.avatarGrid}
+                    showsVerticalScrollIndicator={false}
+                  />
+
+                  <View style={styles.modalFooter}>
+                    <TouchableOpacity
+                      style={[styles.modalButton, styles.cancelButton]}
+                      onPress={handleCancelSelection}
+                    >
+                      <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                       style={[
-                        styles.feedbackButton,
-                        submittingFeedback && { opacity: 0.6 },
+                        styles.modalButton,
+                        styles.confirmButton,
+                        (!tempSelectedAvatar || isSavingAvatar) &&
+                          styles.disabledButton,
                       ]}
-                      onPress={handleFeedbackSubmit}
-                      disabled={submittingFeedback}
+                      onPress={handleConfirmSelection}
+                      disabled={!tempSelectedAvatar || isSavingAvatar}
                     >
-                      <Text style={styles.feedbackButtonText}>
-                        {submittingFeedback ? "Submitting..." : "Send Feedback"}
-                      </Text>
+                      {isSavingAvatar ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <Text style={styles.confirmButtonText}>OK</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                 </View>
-              </View>
-
-              {/* ACCOUNT SECTION */}
-              <Text style={[styles.sectionLabel, { marginTop: hp(3) }]}>
-                Account
-              </Text>
-              <View style={styles.accountCard}>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDeleteAccount}
-                >
-                  <View style={styles.buttonContent}>
-                    <Ionicons
-                      name="trash"
-                      size={fontScale(32)}
-                      color={"#ffffff"}
-                    />
-                    <Text style={styles.deleteButtonText}>Delete Account</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={fontScale(26)}
-                    color={"rgb(216, 216, 216)"}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.logoutButton}
-                  onPress={handleLogout}
-                >
-                  <View style={styles.buttonContent}>
-                    <Ionicons
-                      name="log-out"
-                      size={fontScale(32)}
-                      color={"#5a5a5a"}
-                    />
-                    <Text style={styles.logoutButtonText}>Logout</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={fontScale(26)}
-                    color={"rgb(26, 26, 26)"}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ height: hp(10) }} />
-            </ScrollView>
-          </KeyboardAvoidingView>
-
-          {/* Conversion Modal */}
-          {showConversionModal && (
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContainer}>
-                <Text style={styles.modalTitle}>Convert Points to Coins</Text>
-                <Text style={styles.modalSubtitle}>
-                  You have {referralPoints} points
-                </Text>
-                <View style={styles.conversionInfo}>
-                  <Ionicons
-                    name="information-circle"
-                    size={fontScale(20)}
-                    color="#3b48b9"
-                  />
-                  <Text style={styles.conversionInfoText}>
-                    10 points = 1 coin
-                  </Text>
-                </View>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter points (multiples of 10)"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  value={pointsToConvert}
-                  onChangeText={setPointsToConvert}
-                />
-                {pointsToConvert && parseInt(pointsToConvert) >= 10 && (
-                  <View style={styles.conversionPreview}>
-                    <Text style={styles.conversionPreviewText}>
-                      You will receive:{" "}
-                      {Math.floor(parseInt(pointsToConvert) / 10)} coins
-                    </Text>
-                  </View>
-                )}
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
-                    onPress={() => {
-                      setShowConversionModal(false);
-                      setPointsToConvert("");
-                    }}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.confirmButton]}
-                    onPress={handleConvertPoints}
-                  >
-                    <Text style={styles.confirmButtonText}>Convert</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              </TouchableWithoutFeedback>
             </View>
-          )}
-
-          {/* Upload Avatar Loading Overlay */}
-          {uploadingAvatar && (
-            <View style={styles.loadingOverlay}>
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#3b48b9" />
-                <Text style={styles.loadingText}>
-                  Uploading profile picture...
-                </Text>
-              </View>
-            </View>
-          )}
-        </SafeAreaView>
-      </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      </SafeAreaView>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: { flex: 1, width: "100%", height: "100%" },
-  overlay: { flex: 1, backgroundColor: "rgba(12, 12, 12, 0.75)" },
-  container: { flex: 1, marginHorizontal: wp(5), marginVertical: hp(1) },
-  profileHeader: { alignItems: "center", paddingVertical: hp(2) },
-  avatarContainer: { position: "relative", marginBottom: hp(1) },
-  avatar: {
-    width: wp(20),
-    height: wp(20),
-    borderRadius: wp(10),
-    backgroundColor: "#3b48b9",
+  background: {
+    width: "100%",
+    height: "100%",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(12, 12, 12, 0.8)",
+  },
+  loadingContainer: {
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 3,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: wp(5),
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "white",
+    marginTop: hp(3),
+    marginBottom: hp(1),
+  },
+  profileCard: {
+    position: "relative",
+    width: "100%",
+    borderRadius: 14,
+    padding: wp(4),
+    marginTop: hp(2),
+    minHeight: hp(22),
+  },
+  avatarContainer: {
+    position: "absolute",
+    top: -hp(9),
+    left: -wp(10.5),
+    width: wp(50),
+    height: hp(30),
+    zIndex: 1,
   },
   avatarImage: {
-    width: wp(20),
-    height: wp(20),
-    borderRadius: wp(10),
-    borderWidth: 3,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    width: "110%",
+    height: "120%",
+    top: hp(6),
   },
-  editAvatarButton: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: "#4d5aee",
-    width: wp(7),
-    height: wp(7),
-    borderRadius: wp(3.5),
+  largeAvatarImage: {
+    width: "130%",
+    height: "130%",
+    top: hp(5),
+  },
+  errorContainer: {
+    backgroundColor: "#f0f0f0",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: "rgba(26, 26, 31, 0.95)",
+    borderRadius: 10,
   },
-  username: {
-    color: "white",
-    fontSize: fontScale(20),
-    fontWeight: "700",
-    marginBottom: hp(0.2),
+  errorText: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 5,
   },
-  userId: {
-    color: "rgba(180, 180, 180, 0.7)",
-    fontSize: fontScale(11),
+  infoWhiteContainer: {
+    marginLeft: wp(38),
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    borderRadius: 12,
+    padding: wp(3),
+  },
+  scoreText: {
+    fontSize: 16,
     fontWeight: "500",
+    fontStyle: "italic",
+    color: "#ffffff",
   },
-  text: {
-    color: "white",
-    fontSize: fontScale(24),
+  nameText: {
+    fontSize: 28,
     fontWeight: "bold",
+    marginVertical: hp(0.5),
+    color: "#000",
+  },
+  statsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255, 255, 255, 0)",
+    borderRadius: 16,
+    padding: wp(1),
+    width: "100%",
+    marginTop: hp(1),
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp(2),
+    flex: 1,
+  },
+  rankIcon: {
+    width: wp(10),
+    height: hp(5),
+  },
+  rankText: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  statText: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  editButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: wp(2),
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    padding: wp(2),
+    width: "100%",
+    marginTop: hp(1),
+  },
+  editButtonText: {
+    fontSize: 20,
+    color: "#262626",
+  },
+  sectionContainer: {
+    marginTop: hp(2),
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 16,
+    padding: wp(4),
+  },
+  accountSectionContainer: {
+    marginTop: hp(2),
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 16,
+    padding: wp(4),
     marginBottom: hp(2),
   },
-  scrollContent: {
-    gap: hp(1.5),
-    paddingRight: wp(4),
-    alignItems: "flex-start",
-    paddingBottom: hp(5),
-  },
-  sectionLabel: {
-    color: "#b0b0b0e4",
-    fontSize: fontScale(16),
-    marginBottom: hp(0.5),
-  },
-  card: {
-    backgroundColor: "rgba(18, 18, 18, 0.05)",
-    width: "100%",
-    marginTop: hp(0.1),
-    borderRadius: wp(2.5),
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(2),
-    gap: hp(1.5),
-    borderRightColor: "rgba(23, 23, 23, 0.24)",
-  },
-  emailContainer: {
-    justifyContent: "space-between",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(5),
-    marginBottom: hp(0.5),
-  },
-  emailLabel: { fontSize: fontScale(16), color: "#757575", fontWeight: "500" },
-  emailValue: {
-    fontSize: fontScale(14),
-    color: "rgba(180, 180, 180, 0.87)",
-    fontWeight: "400",
-  },
-  buttonSpacing: { marginTop: hp(1.5) },
-  actionButton: {
-    width: "100%",
-    backgroundColor: "#3b48b9",
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(2.5),
-    borderRadius: wp(2.5),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    shadowColor: "rgba(0, 0, 0, 0.05)",
-    shadowOpacity: 0.5,
-    elevation: 10,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  buttonContent: { flexDirection: "row", alignItems: "center", gap: wp(7) },
-  buttonText: { fontSize: fontScale(15), fontWeight: "500", color: "#ffffff" },
-  referralSection: {
-    marginTop: hp(2.5),
-    paddingTop: hp(2.5),
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.1)",
-  },
-  referralTitle: {
-    fontSize: fontScale(16),
-    fontWeight: "500",
-    color: "#757575",
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "white",
     marginBottom: hp(1.5),
   },
-  referralRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(2.5),
-  },
-  referralLinkBox: {
-    flex: 1,
-    backgroundColor: "rgba(59, 72, 185, 0.2)",
-    borderWidth: 1,
-    borderColor: "#3b48b9",
-    borderRadius: wp(2.5),
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(3),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  referralLinkText: {
-    fontSize: fontScale(11),
+  sectionSubtitle: {
+    fontSize: 16,
     fontWeight: "500",
-    color: "#ffffff",
-    flex: 1,
-  },
-  referralCodeContainer: { flexDirection: "row", gap: wp(2.5) },
-  codeBox: {
-    flex: 1,
-    backgroundColor: "rgba(59, 72, 185, 0.2)",
-    borderWidth: 1,
-    borderColor: "#3b48b9",
-    borderRadius: wp(2.5),
-    paddingVertical: hp(1.5),
-    paddingHorizontal: wp(4),
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  codeText: {
-    fontSize: fontScale(16),
-    fontWeight: "700",
-    color: "#ffffff",
-    letterSpacing: 1,
-  },
-  copyButton: {
-    backgroundColor: "#3b48b9",
-    paddingHorizontal: wp(4),
-    borderRadius: wp(2.5),
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(1.5),
-    shadowColor: "rgba(0, 0, 0, 0.05)",
-    shadowOpacity: 0.5,
-    elevation: 10,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  shareButton: {
-    backgroundColor: "#2ecc71",
-    paddingHorizontal: wp(4),
-    borderRadius: wp(2.5),
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(1.5),
-    shadowColor: "rgba(0, 0, 0, 0.05)",
-    shadowOpacity: 0.5,
-    elevation: 10,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  copyButtonText: {
-    color: "#ffffff",
-    fontSize: fontScale(14),
-    fontWeight: "600",
-  },
-  referralSubtext: {
-    fontSize: fontScale(12),
-    color: "rgba(180, 180, 180, 0.7)",
-    marginTop: hp(1),
-  },
-  ratingSection: { marginTop: hp(1.5) },
-  ratingTitle: { fontSize: fontScale(16), fontWeight: "500", color: "#707070" },
-  starsRow: {
-    marginTop: hp(1),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: wp(2),
-  },
-  feedbackContainer: { marginTop: hp(2) },
-  feedbackTitle: {
-    fontSize: fontScale(16),
-    fontWeight: "500",
-    color: "#707070",
+    color: "white",
+    marginTop: hp(1.5),
     marginBottom: hp(1),
   },
-  feedbackInput: {
-    borderRadius: wp(2.5),
-    marginBottom: hp(1.5),
-    backgroundColor: "rgba(42, 42, 42, 0.5)",
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(1.5),
-    color: "#ffffff",
-    fontSize: fontScale(14),
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    minHeight: hp(10),
-    textAlignVertical: "top",
-  },
-  feedbackButton: {
-    backgroundColor: "#3b48b9",
-    paddingVertical: hp(1.2),
-    borderRadius: wp(2.5),
-    alignItems: "center",
-  },
-  feedbackButtonText: {
-    color: "#ffffff",
-    fontSize: fontScale(14),
-    fontWeight: "600",
-  },
-  accountCard: {
-    backgroundColor: "rgba(59, 59, 58, 0.17)",
-    width: "100%",
-    marginTop: hp(2),
-    borderRadius: wp(5),
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(2.5),
-    gap: hp(2.5),
-  },
-  deleteButton: {
-    width: "100%",
-    backgroundColor: "#aa2323",
-    paddingVertical: hp(1.2),
-    paddingHorizontal: wp(2.5),
-    borderRadius: wp(2.5),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    shadowColor: "rgb(255, 62, 62)",
-    shadowOpacity: 0.5,
-    elevation: 10,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  deleteButtonText: {
-    fontSize: fontScale(18),
-    fontWeight: "600",
-    color: "#ffffff",
-  },
-  logoutButton: {
-    width: "100%",
-    backgroundColor: "#ffffff",
-    paddingVertical: hp(1.2),
-    paddingHorizontal: wp(2.5),
-    borderRadius: wp(2.5),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    shadowColor: "rgba(255, 255, 255, 0.04)",
-    shadowOpacity: 0.5,
-    elevation: 10,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  logoutButtonText: {
-    fontSize: fontScale(18),
-    fontWeight: "600",
-    color: "#1b1b1b",
-  },
-  rewardsCard: {
-    backgroundColor: "rgba(18, 18, 18, 0.5)",
-    width: "100%",
-    marginTop: hp(0.1),
-    borderRadius: wp(2.5),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2.5),
-    borderWidth: 1,
-    borderColor: "rgba(59, 72, 185, 0.3)",
-  },
-  rewardRow: {
+  referralsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: hp(2),
-  },
-  rewardItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(3),
-    flex: 1,
-  },
-  rewardIconContainer: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(6),
-    backgroundColor: "rgba(59, 72, 185, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  rewardLabel: { fontSize: fontScale(12), color: "#b0b0b0", fontWeight: "500" },
-  rewardValue: { fontSize: fontScale(24), color: "#ffffff", fontWeight: "700" },
-  convertButton: {
-    backgroundColor: "#3b48b9",
-    paddingVertical: hp(1.5),
-    borderRadius: wp(2.5),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     gap: wp(2),
-    marginBottom: hp(1.5),
+  },
+  referralCard: {
+    flex: 1,
+    backgroundColor: "white",
+    borderRadius: 12,
+    paddingVertical: hp(1.2),
+    alignItems: "center",
+  },
+  referralIconContainer: {
+    width: wp(8),
+    height: wp(8),
+    borderRadius: wp(4),
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: hp(0.3),
+  },
+  referralLabel: {
+    fontSize: 10,
+    color: "#666",
+    fontWeight: "500",
+  },
+  referralValue: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  warningContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 165, 0, 0.15)",
+    borderRadius: 8,
+    padding: wp(2),
+    marginTop: hp(1),
+    gap: wp(1.5),
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 11,
+    color: "#FFA500",
+    fontWeight: "500",
+  },
+  convertButton: {
+    marginTop: hp(1.5),
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  convertButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: hp(1.2),
+    gap: wp(2),
   },
   convertButtonText: {
-    color: "#ffffff",
-    fontSize: fontScale(14),
+    fontSize: 14,
+    color: "white",
     fontWeight: "600",
   },
-  rewardHint: {
-    fontSize: fontScale(11),
-    color: "rgba(180, 180, 180, 0.7)",
-    textAlign: "center",
+  referralCodeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: wp(3),
+    gap: wp(2),
   },
-  rouletteButton: {
-    backgroundColor: "rgba(245, 158, 11, 0.3)",
-    paddingVertical: hp(1.5),
-    borderRadius: wp(2.5),
+  referralCodeText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    letterSpacing: 0.5,
+  },
+  copyButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    paddingVertical: hp(0.5),
+    paddingHorizontal: wp(2),
+    borderRadius: 6,
+    gap: wp(1),
+  },
+  copyButtonText: {
+    fontSize: 12,
+    color: "#4CAF50",
+    fontWeight: "600",
+  },
+  referralInfoText: {
+    fontSize: 11,
+    color: "#aaa",
+    marginTop: hp(0.5),
+    fontStyle: "italic",
+  },
+  legalButtonsContainer: {
+    flexDirection: "row",
+    gap: wp(3),
+  },
+  legalButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: wp(2),
-    marginTop: hp(1.5),
-    borderWidth: 1,
-    borderColor: "#f59e0b",
-  },
-  rouletteButtonText: {
-    color: "#ffffff",
-    fontSize: fontScale(14),
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    backgroundColor: "rgba(26, 26, 31, 0.98)",
-    borderRadius: wp(4),
-    paddingHorizontal: wp(6),
-    paddingVertical: hp(3),
-    width: wp(85),
-    borderWidth: 1,
-    borderColor: "rgba(59, 72, 185, 0.5)",
-  },
-  modalTitle: {
-    fontSize: fontScale(20),
-    fontWeight: "700",
-    color: "#ffffff",
-    textAlign: "center",
-    marginBottom: hp(1),
-  },
-  modalSubtitle: {
-    fontSize: fontScale(14),
-    color: "#b0b0b0",
-    textAlign: "center",
-    marginBottom: hp(2),
-  },
-  conversionInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: wp(2),
-    backgroundColor: "rgba(59, 72, 185, 0.2)",
+    backgroundColor: "white",
+    borderRadius: 8,
     paddingVertical: hp(1),
-    paddingHorizontal: wp(3),
-    borderRadius: wp(2),
-    marginBottom: hp(2),
+    paddingHorizontal: wp(2),
+    gap: wp(1.5),
   },
-  conversionInfoText: {
-    fontSize: fontScale(14),
-    color: "#ffffff",
+  legalButtonText: {
+    fontSize: 12,
+    color: "#333",
     fontWeight: "500",
   },
-  modalInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: wp(2.5),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-    color: "#ffffff",
-    fontSize: fontScale(16),
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    marginBottom: hp(2),
+  ratingContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: wp(3),
+    alignItems: "center",
   },
-  conversionPreview: {
-    backgroundColor: "rgba(245, 158, 11, 0.2)",
-    paddingVertical: hp(1),
-    paddingHorizontal: wp(3),
-    borderRadius: wp(2),
-    marginBottom: hp(2),
-    borderWidth: 1,
-    borderColor: "#f59e0b",
+  starsContainer: {
+    flexDirection: "row",
+    gap: wp(1.5),
+    marginBottom: hp(0.5),
   },
-  conversionPreviewText: {
-    fontSize: fontScale(14),
-    color: "#f59e0b",
+  ratingText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
+  },
+  feedbackInput: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: wp(3),
+    minHeight: hp(8),
+    fontSize: 13,
+    color: "#333",
+    textAlignVertical: "top",
+  },
+  submitButton: {
+    marginTop: hp(1),
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  submitButtonGradient: {
+    paddingVertical: hp(1.2),
+    alignItems: "center",
+  },
+  submitButtonText: {
+    fontSize: 14,
+    color: "white",
     fontWeight: "600",
-    textAlign: "center",
   },
-  modalButtons: { flexDirection: "row", gap: wp(3) },
+  accountButtonsContainer: {
+    flexDirection: "row",
+    gap: wp(3),
+  },
+  accountButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(2),
+    gap: wp(2),
+  },
+  accountButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  deleteButtonText: {
+    color: "#FF4444",
+  },
+  logoutButtonText: {
+    color: "#FF9800",
+  },
+  largeBottomPadding: {
+    height: hp(10),
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: width * 0.9,
+    maxHeight: height * 0.7,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: wp(4),
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp(2),
+    paddingBottom: hp(1),
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  avatarGrid: {
+    paddingBottom: hp(2),
+  },
+  avatarItem: {
+    flex: 1,
+    margin: wp(2),
+    aspectRatio: 1,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  avatarGradient: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  avatarItemImage: {
+    width: "80%",
+    height: "80%",
+  },
+  selectedAvatarItem: {
+    borderWidth: 3,
+    borderColor: "#4CAF50",
+  },
+  checkmarkContainer: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+  },
+  modalFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: hp(2),
+    paddingTop: hp(2),
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+  },
   modalButton: {
     flex: 1,
     paddingVertical: hp(1.5),
-    borderRadius: wp(2.5),
+    borderRadius: 10,
     alignItems: "center",
-    justifyContent: "center",
+    marginHorizontal: wp(2),
   },
-  cancelButton: { backgroundColor: "rgba(255, 255, 255, 0.1)" },
+  cancelButton: {
+    backgroundColor: "#F0F0F0",
+  },
+  confirmButton: {
+    backgroundColor: "#4CAF50",
+  },
+  disabledButton: {
+    backgroundColor: "#CCCCCC",
+    opacity: 0.5,
+  },
   cancelButtonText: {
-    color: "#ffffff",
-    fontSize: fontScale(14),
+    fontSize: 16,
+    color: "#666",
     fontWeight: "600",
   },
-  confirmButton: { backgroundColor: "#3b48b9" },
   confirmButtonText: {
-    color: "#ffffff",
-    fontSize: fontScale(14),
-    fontWeight: "700",
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingContainer: {
-    backgroundColor: "rgba(26, 26, 31, 0.95)",
-    borderRadius: wp(4),
-    paddingHorizontal: wp(8),
-    paddingVertical: hp(3),
-    alignItems: "center",
-  },
-  loadingText: {
-    color: "#ffffff",
-    fontSize: fontScale(14),
-    marginTop: hp(2),
-    fontWeight: "500",
+    fontSize: 16,
+    color: "white",
+    fontWeight: "600",
   },
 });

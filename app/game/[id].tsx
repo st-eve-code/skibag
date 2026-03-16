@@ -1,4 +1,5 @@
 import { Games } from "@/constant/games";
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -24,6 +25,7 @@ const leaderboard = [
 ];
 
 export default function GameDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
@@ -32,12 +34,12 @@ export default function GameDetail() {
   if (!game) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Game not found</Text>
+        <Text style={styles.errorText}>{t("game_not_found")}</Text>
         <TouchableOpacity
           style={styles.backButtonError}
           onPress={() => router.back()}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <Text style={styles.backButtonText}>{t("go_back")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -121,7 +123,7 @@ export default function GameDetail() {
             <View style={styles.playSection}>
               <TouchableOpacity style={styles.playButton} onPress={handlePlay}>
                 <Ionicons name="play" size={fontScale(28)} color="#fff" />
-                <Text style={styles.playButtonText}>PLAY NOW</Text>
+                <Text style={styles.playButtonText}>{t("play_now")}</Text>
               </TouchableOpacity>
 
               <View style={styles.gameStats}>
@@ -131,11 +133,11 @@ export default function GameDetail() {
                     size={fontScale(18)}
                     color="#a0a0a0"
                   />
-                  <Text style={styles.statText}>10K+</Text>
+                  <Text style={styles.statText}>{t("downloads")}</Text>
                 </View>
                 <View style={styles.statItem}>
                   <Ionicons name="time" size={fontScale(18)} color="#a0a0a0" />
-                  <Text style={styles.statText}>Action</Text>
+                  <Text style={styles.statText}>{t("action")}</Text>
                 </View>
                 <View style={styles.statItem}>
                   <Ionicons
@@ -143,13 +145,13 @@ export default function GameDetail() {
                     size={fontScale(18)}
                     color="#a0a0a0"
                   />
-                  <Text style={styles.statText}>Mobile</Text>
+                  <Text style={styles.statText}>{t("mobile")}</Text>
                 </View>
               </View>
             </View>
 
             <View style={styles.descriptionSection}>
-              <Text style={styles.sectionTitle}>About Game</Text>
+              <Text style={styles.sectionTitle}>{t("about_game")}</Text>
               <Text style={styles.descriptionText}>{game.description}</Text>
             </View>
 
@@ -161,10 +163,12 @@ export default function GameDetail() {
                     size={fontScale(18)}
                     color="#FFD700"
                   />
-                  <Text style={styles.leaderboardTitle}>Top Players</Text>
+                  <Text style={styles.leaderboardTitle}>
+                    {t("top_players")}
+                  </Text>
                 </View>
                 <TouchableOpacity>
-                  <Text style={styles.seeAllText}>See all</Text>
+                  <Text style={styles.seeAllText}>{t("see_all")}</Text>
                 </TouchableOpacity>
               </View>
 

@@ -1,23 +1,25 @@
 import Slides from "@/constant/onboardSlides";
+import { useTranslation } from "@/lib/I18nContext";
+import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    ImageBackground,
-    Text,
-    View,
-    TouchableOpacity,
-    StatusBar,
+  Animated,
+  Dimensions,
+  FlatList,
+  ImageBackground,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
 export default function Index() {
+  const { t } = useTranslation();
   const [fontsLoaded] = useFonts({
     "Poppins-Bold": require("@/assets/fonts/Poppins-Bold.ttf"),
     "Montserrat-Regular": require("@/assets/fonts/Montserrat-Regular.ttf"),
@@ -52,7 +54,13 @@ export default function Index() {
     return null;
   }
 
-  const renderSlide = ({ item, index }: { item: typeof Slides[0]; index: number }) => (
+  const renderSlide = ({
+    item,
+    index,
+  }: {
+    item: (typeof Slides)[0];
+    index: number;
+  }) => (
     <ImageBackground
       source={item.backgroundImage}
       style={{
@@ -93,7 +101,13 @@ export default function Index() {
             }}
           >
             {/* Title with button on last slide */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
               <Text
                 style={{
                   color: "white",
@@ -103,9 +117,9 @@ export default function Index() {
                   flex: 1,
                 }}
               >
-                {item.title}
+                {t(item.titleKey)}
               </Text>
-              
+
               {/* Arrow button - only on last slide */}
               {index === Slides.length - 1 && (
                 <TouchableOpacity
@@ -143,7 +157,7 @@ export default function Index() {
                 fontFamily: "Montserrat-Regular",
               }}
             >
-              {item.description}
+              {t(item.descriptionKey)}
             </Text>
           </View>
         </SafeAreaView>
@@ -153,16 +167,20 @@ export default function Index() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
+
       {/* Skip button - only show if not on last slide */}
       {currentIndex < Slides.length - 1 && (
-        <SafeAreaView 
-          style={{ 
-            position: "absolute", 
-            top: 0, 
-            right: 20, 
-            zIndex: 10 
+        <SafeAreaView
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 20,
+            zIndex: 10,
           }}
         >
           <TouchableOpacity
@@ -180,7 +198,7 @@ export default function Index() {
                 opacity: 0.8,
               }}
             >
-              Skip
+              {t("skip")}
             </Text>
           </TouchableOpacity>
         </SafeAreaView>

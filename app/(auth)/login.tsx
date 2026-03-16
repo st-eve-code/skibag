@@ -1,5 +1,8 @@
 import { signInWithApple, signInWithGoogle } from "@/lib/authService";
-import { signInWithUsername } from "@/lib/supabaseAuthService";
+import { useTranslation } from "@/lib/I18nContext";
+import { getCurrentUser, signInWithUsername } from "@/lib/supabaseAuthService";
+
+import { useUser } from "@/lib/userContext";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,6 +25,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Login() {
+  const { t } = useTranslation();
   const [fontsLoaded] = useFonts({
     "Poppins-Bold": require("@/assets/fonts/Poppins-Bold.ttf"),
     "Montserrat-Regular": require("@/assets/fonts/Montserrat-Regular.ttf"),
@@ -33,10 +37,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
 
+  const { setUserData, addNotification } = useUser();
+
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       await signInWithGoogle();
+      // Note: OAuth redirect will handle setting user data in callback
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to sign in with Google");
     } finally {
@@ -48,6 +55,7 @@ export default function Login() {
     try {
       setLoading(true);
       await signInWithApple();
+      // Note: OAuth redirect will handle setting user data in callback
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to sign in with Apple");
     } finally {
@@ -57,22 +65,45 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!username.trim()) {
-      Alert.alert("Validation", "Please enter your username.");
+      Alert.alert(t("error"), t("invalid_email"));
       return;
     }
     if (!password) {
-      Alert.alert("Validation", "Please enter your password.");
+      Alert.alert(t("error"), t("password"));
       return;
     }
     try {
       setLoginLoading(true);
       await signInWithUsername(username.trim(), password);
-      router.replace("/(tabs)");
+
+      // Sync user data to UserContext after login
+      const user = await getCurrentUser();
+      if (user) {
+        setUserData({
+          id: user.id,
+          username: user.username,
+          email: user.username + "@skibag.app", // Create fake email since we don't have one
+          avatarUri: user.avatar_url || null,
+          rank: user.rank || "beginner",
+          score: user.coins || 0,
+          day_streak: user.day_streak || 0,
+          last_streak_date: user.last_streak_date || undefined,
+        });
+
+        // Add welcome back notification
+        addNotification(
+          "login",
+          `Welcome back, ${user.username}!`,
+          "Great to see you again. Ready to play?",
+        );
+      }
+
+      // Small delay to ensure userData is set before navigation
+      setTimeout(() => {
+        router.replace("/(tabs)");
+      }, 500);
     } catch (error: any) {
-      Alert.alert(
-        "Login Failed",
-        error.message || "Invalid username or password.",
-      );
+      Alert.alert(t("login"), error.message || t("invalid_password"));
     } finally {
       setLoginLoading(false);
     }
@@ -135,10 +166,10 @@ export default function Login() {
                   }}
                 >
                   {/* Username Label */}
-                  <Text style={styles.label}>Username</Text>
+                  <Text style={styles.label}>{t("username")}</Text>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="Enter your username"
+                    placeholder={t("username")}
                     placeholderTextColor="#999"
                     value={username}
                     onChangeText={setUsername}
@@ -147,7 +178,7 @@ export default function Login() {
 
                   {/* Password Label */}
                   <Text style={[styles.label, { marginTop: 20 }]}>
-                    Password
+                    {t("password")}
                   </Text>
                   <View
                     style={{
@@ -158,7 +189,7 @@ export default function Login() {
                   >
                     <TextInput
                       style={styles.textInput}
-                      placeholder="Enter your password"
+                      placeholder={t("password")}
                       placeholderTextColor="#999"
                       value={password}
                       onChangeText={setPassword}
@@ -170,7 +201,7 @@ export default function Login() {
                       style={{ position: "absolute", right: 15, top: 15 }}
                     >
                       <Text style={{ color: "#555", fontSize: 13 }}>
-                        {showPassword ? "Hide" : "Show"}
+                        {showPassword ? t("hide_password") : t("show_password")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -191,7 +222,7 @@ export default function Login() {
                           style={{ marginRight: 8 }}
                         />
                       ) : null}
-                      <Text style={styles.loginButtonText}>Login</Text>
+                      <Text style={styles.loginButtonText}>{t("login")}</Text>
                     </View>
                   </TouchableOpacity>
 
@@ -224,7 +255,7 @@ export default function Login() {
                         />
                       )}
                       <Text style={styles.socialButtonText}>
-                        Continue with Google
+                        {t("or_continue_with")} Google
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -252,7 +283,7 @@ export default function Login() {
                           />
                         )}
                         <Text style={styles.socialButtonText}>
-                          Continue with Apple
+                          {t("or_continue_with")} Apple
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -261,10 +292,10 @@ export default function Login() {
                   {/* Sign up link */}
                   <View style={styles.signupContainer}>
                     <Text style={styles.signupText}>
-                      Don&apos;t have an account?{" "}
+                      {t("dont_have_account")}{" "}
                     </Text>
                     <TouchableOpacity onPress={() => router.push("/signup")}>
-                      <Text style={styles.signupLink}>Sign up</Text>
+                      <Text style={styles.signupLink}>{t("sign_up")}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

@@ -1,5 +1,7 @@
 import { Games } from "@/constant/games";
+import { useTranslation } from "@/lib/I18nContext";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -13,7 +15,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -23,6 +24,7 @@ const hp = (percentage: number) => (SCREEN_HEIGHT / 100) * percentage;
 const fontScale = (size: number) => (SCREEN_WIDTH / 375) * size;
 
 export default function GamesTab() {
+  const { t } = useTranslation();
   const router = useRouter();
   const categories = [
     "all",
@@ -35,6 +37,19 @@ export default function GamesTab() {
     "fighting",
     "adventure",
   ];
+
+  // Category translation keys
+  const categoryKeys: Record<string, string> = {
+    all: "category_all",
+    casino: "category_casino",
+    action: "category_action",
+    football: "category_football",
+    board: "category_board",
+    puzzles: "category_puzzles",
+    arcade: "category_arcade",
+    fighting: "category_fighting",
+    adventure: "category_adventure",
+  };
 
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedGame, setSelectedGame] = useState(Games[0]);
@@ -76,59 +91,56 @@ export default function GamesTab() {
               style={styles.adBanner}
               // imageStyle={styles.adBannerImage}
             />
-              <LinearGradient
-                colors={[
-                  "rgba(116, 116, 116, 0)",
-                  "rgba(44, 44, 44, 0.7)",
-                  "rgba(15, 15, 15, 0.98)",
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={styles.adGradient}
-              >
-                {/* Game Info */}
-                <View style={styles.gameInfo}>
-                  <Text style={styles.gameName}>{selectedGame.name}</Text>
-                  <Text style={styles.gameCategory}>
-                    {selectedGame.category}
-                  </Text>
-                  <View style={styles.ratingRow}>
-                    <Ionicons
-                      name="star"
-                      size={fontScale(16)}
-                      color="#FFD700"
-                    />
-                    <Text style={styles.ratingText}>{selectedGame.rating}</Text>
-                  </View>
+            <LinearGradient
+              colors={[
+                "rgba(116, 116, 116, 0)",
+                "rgba(44, 44, 44, 0.7)",
+                "rgba(15, 15, 15, 0.98)",
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.adGradient}
+            >
+              {/* Game Info */}
+              <View style={styles.gameInfo}>
+                <Text style={styles.gameName}>{selectedGame.name}</Text>
+                <Text style={styles.gameCategory}>{selectedGame.category}</Text>
+                <View style={styles.ratingRow}>
+                  <Ionicons name="star" size={fontScale(16)} color="#FFD700" />
+                  <Text style={styles.ratingText}>{selectedGame.rating}</Text>
                 </View>
+              </View>
 
-                <TouchableOpacity
-                  style={styles.playButton}
-                  // onPress={() => navigateToGame(selectedGame.id)} for now this link should take the user directly to the game
-                >
-                  <Ionicons
-                    name="play"
-                    size={fontScale(22)}
-                    color="rgb(255, 255, 255)"
-                  />
-                  <Text style={styles.playText}>Play Now</Text>
-                </TouchableOpacity>
-              </LinearGradient>
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={() => navigateToGame(selectedGame.id)}
+              >
+                <Ionicons
+                  name="play"
+                  size={fontScale(22)}
+                  color="rgb(255, 255, 255)"
+                />
+                <Text style={styles.playText}>{t("play_now")}</Text>
+              </TouchableOpacity>
+            </LinearGradient>
             {/* </Image> */}
           </View>
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               {selectedCategory === "all"
-                ? "All Games"
-                : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Games`}
+                ? t("all_games")
+                : `${t(categoryKeys[selectedCategory] || selectedCategory)} ${t("games")}`}
             </Text>
             <Text style={styles.sectionSubtitle}>
-              {filteredGames.length} games available
+              {t("games_available").replace(
+                "{count}",
+                filteredGames.length.toString(),
+              )}
             </Text>
           </View>
           {/* Categories Horizontal Scroll - Under All Games */}
-            {/* <ScrollView
+          {/* <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.categoriesScroll}
@@ -251,7 +263,7 @@ const styles = StyleSheet.create({
   },
   gameInfo: {
     marginBottom: hp(2),
-    marginLeft: wp(2.5)
+    marginLeft: wp(2.5),
   },
   gameName: {
     color: "white",

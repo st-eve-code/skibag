@@ -1,4 +1,5 @@
 import { Games } from "@/constant/games";
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,8 +30,22 @@ const categories = [
 
 export default function AllGames() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [displayedGames, setDisplayedGames] = useState(Games);
+
+  // Category translation keys
+  const categoryKeys: Record<string, string> = {
+    all: "category_all",
+    casino: "category_casino",
+    action: "category_action",
+    football: "category_football",
+    board: "category_board",
+    puzzles: "category_puzzles",
+    arcade: "category_arcade",
+    fighting: "category_fighting",
+    adventure: "category_adventure",
+  };
 
   useEffect(() => {
     if (selectedCategory === "all") {
@@ -69,7 +84,7 @@ export default function AllGames() {
             >
               <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>All Games</Text>
+            <Text style={styles.headerTitle}>{t("all_games_title")}</Text>
             <View style={{ width: wp(10) }} />
           </View>
 
@@ -94,7 +109,7 @@ export default function AllGames() {
                     selectedCategory === item && styles.categoryTextActive,
                   ]}
                 >
-                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                  {t(categoryKeys[item] || item)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -102,7 +117,10 @@ export default function AllGames() {
 
           <View style={styles.gamesCount}>
             <Text style={styles.gamesCountText}>
-              {displayedGames.length} games available
+              {t("games_available").replace(
+                "{count}",
+                displayedGames.length.toString(),
+              )}
             </Text>
           </View>
 

@@ -1,9 +1,17 @@
 import { Games } from "@/constant/games";
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
+import { supabase } from "@/lib/supabase";
+import {
+  checkAndUpdateStreak,
+  getCurrentUser,
+} from "@/lib/supabaseAuthService";
+import { useUser } from "@/lib/userContext";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   ImageBackground,
   ScrollView,
@@ -12,13 +20,147 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from "expo-image";
+
+// Rank image mapping
+const getRankImage = (rank: string) => {
+  const rankImages: { [key: string]: any } = {
+    beginner: require("@/assets/ranks/beginner.png"),
+    advanced: require("@/assets/ranks/advanced.png"),
+    inter: require("@/assets/ranks/inter.png"),
+    pro: require("@/assets/ranks/pro.png"),
+    legend: require("@/assets/ranks/legend.png"),
+    crown1: require("@/assets/ranks/crown1.png"),
+    crown2: require("@/assets/ranks/crown2.png"),
+    top: require("@/assets/ranks/top.png"),
+    second: require("@/assets/ranks/second.png"),
+    last: require("@/assets/ranks/last.png"),
+  };
+  return rankImages[rank] || rankImages["beginner"];
+};
 
 export default function Index() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const { userData, unreadCount, setUserData } = useUser();
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Single fetch function with useCallback
+  const fetchUserData = useCallback(async () => {
+    try {
+      console.log("Fetching user data...");
+      
+      // First try to get user from custom auth service
+      const currentUser = await getCurrentUser();
+      if (currentUser?.username) {
+        console.log("User found in storage:", currentUser.username);
+        setUserData({
+          id: currentUser.id,
+          username: currentUser.username,
+          email: currentUser.username + "@skibag.app",
+          avatarUri: currentUser.avatar_url || null,
+          rank: currentUser.rank || "beginner",
+          score: currentUser.coins || 0,
+          day_streak: currentUser.day_streak || 0,
+          last_streak_date: currentUser.last_streak_date || undefined,
+        });
+
+        // Check and update streak in background
+        try {
+          const streakResult = await checkAndUpdateStreak(currentUser.id);
+          if (streakResult.isNewStreak) {
+            setUserData((prev) => ({
+              ...prev,
+              day_streak: streakResult.day_streak,
+              last_streak_date: new Date().toISOString().split("T")[0],
+            }));
+          }
+        } catch (streakError) {
+          console.log("Error checking streak:", streakError);
+        }
+        return;
+      }
+
+      // Fallback: try Supabase auth session
+      console.log("No user in storage, checking Supabase session...");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        console.log("Supabase session found for user:", session.user.id);
+        const { data: userData } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+
+        if (userData) {
+          console.log("User data from Supabase:", userData.username);
+          setUserData({
+            id: userData.id,
+            username: userData.username,
+            email: userData.email || session.user.email,
+            avatarUri: userData.avatar_url || null,
+            rank: userData.rank || "beginner",
+            score: userData.coins || 0,
+            day_streak: userData.day_streak || 0,
+            last_streak_date: userData.last_streak_date || undefined,
+          });
+
+          // Check and update streak
+          try {
+            const streakResult = await checkAndUpdateStreak(userData.id);
+            if (streakResult.isNewStreak) {
+              setUserData((prev) => ({
+                ...prev,
+                day_streak: streakResult.day_streak,
+                last_streak_date: new Date().toISOString().split("T")[0],
+              }));
+            }
+          } catch (streakError) {
+            console.log("Error checking streak:", streakError);
+          }
+        }
+      } else {
+        console.log("No active session found");
+      }
+    } catch (error) {
+      console.log("Error fetching user data:", error);
+    } finally {
+      setIsLoading(false);
+      setInitialLoadComplete(true);
+      console.log("Loading complete, userData:", userData);
+    }
+  }, [setUserData]);
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  // Listen for auth changes
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      console.log("Auth state changed, refetching user data...");
+      fetchUserData();
+    });
+
+    return () => subscription.unsubscribe();
+  }, [fetchUserData]);
+
+  // Get first letter of username for avatar
+  const avatarLetter = userData?.username 
+    ? userData.username.charAt(0).toUpperCase() 
+    : "";
+
+  console.log("Rendering with avatarLetter:", avatarLetter, "userData:", userData);
 
   const categories = [
     "all",
@@ -45,20 +187,20 @@ export default function Index() {
     {
       id: "banner1",
       image: require("@/assets/images/mufa.jpeg"),
-      title: "Special Offer",
-      subtitle: "Get 100% bonus on first deposit",
+      titleKey: "special_offer",
+      subtitleKey: "get_100_bonus",
     },
     {
       id: "banner2",
       image: require("@/assets/images/modern.jpeg"),
-      title: "Weekend Special",
-      subtitle: "Double your rewards this weekend",
+      titleKey: "weekend_special",
+      subtitleKey: "double_rewards",
     },
     {
       id: "banner3",
       image: require("@/assets/images/race.jpeg"),
-      title: "New Games",
-      subtitle: "Try our latest additions",
+      titleKey: "new_games",
+      subtitleKey: "try_latest",
     },
   ];
 
@@ -82,6 +224,21 @@ export default function Index() {
   const bannerAspectRatio = 16 / 9;
   const cardAspectRatio = 3.2 / 4;
 
+  // Show loading indicator while fetching user data
+  if (isLoading) {
+    return (
+      <ImageBackground
+        source={require("@/assets/images/bg3.jpg")}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={[styles.overlay, styles.loadingContainer]}>
+          <ActivityIndicator size="large" color="#5929d4" />
+        </View>
+      </ImageBackground>
+    );
+  }
+
   return (
     <ImageBackground
       source={require("@/assets/images/bg3.jpg")}
@@ -101,14 +258,19 @@ export default function Index() {
             <View style={styles.header}>
               <View style={styles.balanceContainer}>
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>J</Text>
+                  <Text style={styles.avatarText}>
+                    {avatarLetter}
+                  </Text>
                 </View>
                 <Ionicons name="flash" size={fontScale(16)} color="#ffffff" />
-                <Text style={styles.balanceText}>5000</Text>
+                <Text style={styles.balanceText}>{userData?.score || 0}</Text>
               </View>
               <View style={styles.rankContainer}>
-                <Image source={require('@/assets/ranks/beginner.png')} style={{width:wp(10),height:hp(5)}}/>
-                <Text style={styles.balanceText}>13</Text>
+                <Image
+                  source={getRankImage(userData?.rank || "beginner")}
+                  style={{ width: wp(10), height: hp(5) }}
+                />
+                <Text style={styles.balanceText}>{userData?.score || 0}</Text>
               </View>
               <View style={styles.headerRight}>
                 <TouchableOpacity onPress={() => router.push("/notifications")}>
@@ -117,18 +279,31 @@ export default function Index() {
                     size={fontScale(22)}
                     color="#fff"
                   />
-                  <View style={styles.notificationBadge}>
-                    <Text style={styles.notificationText}>1</Text>
-                  </View>
+                  {unreadCount > 0 && (
+                    <View style={styles.notificationBadge}>
+                      <Text style={styles.notificationText}>
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
-                <TouchableOpacity style={{flexDirection:'row',gap:4,alignItems:'center',marginRight:8}}>
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    gap: 4,
+                    alignItems: "center",
+                    marginRight: 8,
+                  }}
+                >
                   <Ionicons
                     name="flame"
                     size={fontScale(22)}
                     color="#ff6969da"
                   />
-                  <Text style={{color:'white',fontSize:14,fontWeight:'500'}}>
-                    777
+                  <Text
+                    style={{ color: "white", fontSize: 14, fontWeight: "500" }}
+                  >
+                    {userData?.day_streak || 0}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -138,45 +313,6 @@ export default function Index() {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.scrollContent}
             >
-              {/* Quick Info Section */}
-              {/* <View style={styles.quickInfoSection}>
-                <View style={styles.welcomeContainer}>
-                  <Text style={styles.welcomeText}>Hello,</Text>
-                  <Text style={styles.userName}>John Doe</Text>
-                </View>
-                <View style={styles.statsContainer}>
-                  <View style={styles.statBox}>
-                    <Ionicons
-                      name="trophy"
-                      size={fontScale(16)}
-                      color="#FFD700"
-                    />
-                    <Text style={styles.statValue}>12</Text>
-                    <Text style={styles.statLabel}>Wins</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.statBox}>
-                    <Ionicons
-                      name="flame"
-                      size={fontScale(16)}
-                      color="#ff6b6b"
-                    />
-                    <Text style={styles.statValue}>7</Text>
-                    <Text style={styles.statLabel}>Days</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.statBox}>
-                    <Ionicons
-                      name="star"
-                      size={fontScale(16)}
-                      color="#3a7be4"
-                    />
-                    <Text style={styles.statValue}>450</Text>
-                    <Text style={styles.statLabel}>Points</Text>
-                  </View>
-                </View>
-              </View> */}
-
               {/* Spacing */}
               <View style={styles.spacer} />
 
@@ -184,23 +320,30 @@ export default function Index() {
               <TouchableOpacity style={styles.freeSpinCard} activeOpacity={0.9}>
                 <View style={styles.freeSpinContent}>
                   <View style={styles.freeSpinIconContainer}>
-                    <Image source={require('@/assets/images/spin.png')} style={{width:70,height:70}}/>
+                    <Image
+                      source={require("@/assets/images/spin.png")}
+                      style={{ width: 70, height: 70 }}
+                    />
                   </View>
                   <View style={styles.freeSpinTextContainer}>
                     <Text style={styles.freeSpinTitle}>
-                      Free Spin Available!
+                      {t("free_spin_available")}
                     </Text>
                     <Text style={styles.freeSpinSubtitle}>
-                      Tap to claim your daily spin
+                      {t("tap_to_claim")}
                     </Text>
                   </View>
-                  <View style={styles.freeSpinButton}>
+                  <TouchableOpacity
+                    style={styles.freeSpinButton}
+                    activeOpacity={0.9}
+                    onPress={() => router.push("/roulette")}
+                  >
                     <Ionicons
                       name="arrow-forward"
                       size={fontScale(18)}
                       color="#fff"
                     />
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </TouchableOpacity>
 
@@ -224,7 +367,7 @@ export default function Index() {
                       size={fontScale(12)}
                       color="rgb(236, 87, 32)"
                     />
-                    <Text style={styles.bannerBadgeText}>PROMO</Text>
+                    <Text style={styles.bannerBadgeText}>{t("promo")}</Text>
                   </View>
 
                   <LinearGradient
@@ -234,10 +377,10 @@ export default function Index() {
                     style={styles.bannerGradient}
                   >
                     <Text style={styles.bannerTitle}>
-                      {banners[currentBanner].title}
+                      {t(banners[currentBanner].titleKey)}
                     </Text>
                     <Text style={styles.bannerSubtitle}>
-                      {banners[currentBanner].subtitle}
+                      {t(banners[currentBanner].subtitleKey)}
                     </Text>
                     <View style={styles.bannerDots}>
                       {banners.map((_, index) => (
@@ -260,19 +403,25 @@ export default function Index() {
               {/* Bonus Games Section */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <View style={{flexDirection:'row',alignItems:'center',gap:5}}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
                     <Ionicons
                       name="gift"
                       size={fontScale(20)}
                       color="#FFD700"
                     />
-                    <Text style={styles.sectionTitle}>Bonus Games</Text>
+                    <Text style={styles.sectionTitle}>{t("bonus_games")}</Text>
                   </View>
                   <TouchableOpacity
                     style={styles.viewAllButton}
                     onPress={navigateToAllGames}
                   >
-                    <Text style={styles.viewAllText}>View all</Text>
+                    <Text style={styles.viewAllText}>{t("view_all")}</Text>
                     <Ionicons
                       name="arrow-forward"
                       size={fontScale(12)}
@@ -296,10 +445,7 @@ export default function Index() {
                       <ImageBackground
                         source={bonusGames[0].image}
                         resizeMode="cover"
-                        style={[
-                          styles.featuredBonusImage,
-                          { aspectRatio: cardAspectRatio },
-                        ]}
+                        style={styles.featuredBonusImage}
                         imageStyle={{ borderRadius: wp(3) }}
                       >
                         {/*bonus badge */}
@@ -343,10 +489,7 @@ export default function Index() {
                       <ImageBackground
                         source={game.image}
                         resizeMode="cover"
-                        style={[
-                          styles.smallGameImage,
-                          { aspectRatio: cardAspectRatio },
-                        ]}
+                        style={styles.smallGameImage}
                         imageStyle={{ borderRadius: wp(3) }}
                       >
                         <LinearGradient
@@ -378,42 +521,12 @@ export default function Index() {
 
               {/* All Games Section */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  {/* {selectedCategory === "all"
-                    ? "All Games"
-                    : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Games`} */}
-                All Games
-                </Text>
-                <Text style={{color:'white',fontSize:15,fontWeight:'400'}}>
-                  we are proud of all our games, you can take a close look at them
-                </Text>
-                {/* Categories */}
-                {/* <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.categoriesContent}
+                <Text style={styles.sectionTitle}>{t("all_games")}</Text>
+                <Text
+                  style={{ color: "white", fontSize: 15, fontWeight: "400" }}
                 >
-                  {categories.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.categoryItem,
-                        selectedCategory === item && styles.categoryItemActive,
-                      ]}
-                      onPress={() => setSelectedCategory(item)}
-                    >
-                      <Text
-                        style={[
-                          styles.categoryText,
-                          selectedCategory === item &&
-                            styles.categoryTextActive,
-                        ]}
-                      >
-                        {item.charAt(0).toUpperCase() + item.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView> */}
+                  {t("all_games_desc")}
+                </Text>
 
                 {/* Games Grid */}
                 <View style={styles.gamesGrid}>
@@ -450,10 +563,10 @@ export default function Index() {
                     </TouchableOpacity>
                   ))}
                 </View>
-              </View>
 
-              {/* Bottom Padding */}
-              <View style={styles.bottomPadding} />
+                {/* Bottom Padding */}
+                <View style={styles.bottomPadding} />
+              </View>
             </ScrollView>
           </SafeAreaView>
         </View>
@@ -467,6 +580,10 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(12, 12, 12, 0.8)" },
   container: { flex: 1 },
   safeArea: { flex: 1 },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
   // Header
   header: {
@@ -485,13 +602,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(2),
     borderRadius: hp(2.5),
   },
-    rankContainer: {
+  rankContainer: {
     backgroundColor: "#00000000",
     flexDirection: "row",
     alignItems: "center",
     gap: wp(1.5),
     height: hp(4.5),
-    marginLeft:-60,
+    marginLeft: -60,
     paddingHorizontal: wp(2),
     borderRadius: hp(2.5),
   },
@@ -522,231 +639,235 @@ const styles = StyleSheet.create({
     fontSize: fontScale(9),
     fontWeight: "bold",
   },
-  // menuButton: {
-  //   backgroundColor: "rgba(255, 255, 255, 0)",
-  //   padding: wp(2),
-  //   borderRadius: wp(2),
-  // },
 
   // Scroll Content
   scrollContent: { paddingHorizontal: wp(4), paddingBottom: hp(3) },
-  spacer: { height: hp(2.5) },
+  spacer: { height: hp(1), marginBottom: hp(1) },
   bottomPadding: { height: hp(5) },
-
-  // Quick Info Section
-  quickInfoSection: {
-    backgroundColor: "rgba(42, 42, 42, 0.6)",
-    borderRadius: wp(4),
-    padding: wp(4),
-  },
-  welcomeContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: wp(1),
-    marginBottom: hp(1.5),
-  },
-  welcomeText: { fontSize: fontScale(13), color: "#a0a0a0" },
-  userName: { fontSize: fontScale(18), color: "white", fontWeight: "700" },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-  statBox: { alignItems: "center", gap: hp(0.3) },
-  statDivider: {
-    width: 1,
-    height: hp(4),
-    backgroundColor: "rgba(255,255,255,0.1)",
-  },
-  statValue: { fontSize: fontScale(16), color: "white", fontWeight: "700" },
-  statLabel: { fontSize: fontScale(10), color: "#a0a0a0" },
 
   // Free Spin Card
   freeSpinCard: {
     backgroundColor: "rgba(59, 132, 226, 0.25)",
     borderRadius: wp(4),
     padding: wp(3.5),
-    borderWidth: 1,
-    borderColor: "rgba(59, 132, 226, 0.4)",
   },
-  freeSpinContent: { flexDirection: "row", alignItems: "center" },
+  freeSpinContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   freeSpinIconContainer: {
-    width: wp(11),
-    height: wp(11),
-    borderRadius: wp(5.5),
-    backgroundColor: "rgba(255, 215, 0, 0.15)",
+    width: 70,
+    height: 70,
     justifyContent: "center",
     alignItems: "center",
   },
-  freeSpinTextContainer: { flex: 1, marginLeft: wp(3) },
+  freeSpinTextContainer: {
+    flex: 1,
+    marginLeft: wp(2),
+  },
   freeSpinTitle: {
-    fontSize: fontScale(15),
-    color: "#FFD700",
-    fontWeight: "700",
+    color: "white",
+    fontSize: fontScale(14),
+    fontWeight: "bold",
   },
   freeSpinSubtitle: {
-    fontSize: fontScale(11),
-    color: "#a0a0a0",
-    marginTop: hp(0.3),
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: fontScale(12),
+    marginTop: 2,
   },
   freeSpinButton: {
-    width: wp(9),
-    height: wp(9),
-    borderRadius: wp(4.5),
-    backgroundColor: "#3a7be4",
+    backgroundColor: "#5929d4",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
   },
 
   // Banner
-  bannerContainer: { width: "100%" },
-  bannerImage: { width: "100%", borderRadius: wp(3), overflow: "hidden" },
+  bannerContainer: {
+    marginHorizontal: wp(0),
+  },
+  bannerImage: {
+    width: "100%",
+  },
   bannerBadge: {
     position: "absolute",
-    top: hp(1.2),
-    left: wp(3),
+    top: wp(2),
+    left: wp(2),
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.5),
+    borderRadius: wp(2),
     flexDirection: "row",
     alignItems: "center",
-    gap: wp(0.8),
-    backgroundColor: "#ffffffdd",
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.5),
-    borderRadius: hp(1.5),
+    gap: 4,
   },
   bannerBadgeText: {
-    color: "rgb(60, 60, 60)",
+    color: "white",
     fontSize: fontScale(10),
     fontWeight: "600",
   },
   bannerGradient: {
     position: "absolute",
     bottom: 0,
-    width: "100%",
-    height: "65%",
+    left: 0,
+    right: 0,
+    height: "50%",
     justifyContent: "flex-end",
-    padding: wp(3.5),
+    padding: wp(3),
+    borderBottomLeftRadius: wp(3),
+    borderBottomRightRadius: wp(3),
   },
-  bannerTitle: { color: "#fff", fontSize: fontScale(20), fontWeight: "700" },
+  bannerTitle: {
+    color: "white",
+    fontSize: fontScale(18),
+    fontWeight: "bold",
+  },
   bannerSubtitle: {
-    color: "rgb(191, 191, 191)",
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: fontScale(12),
-    marginTop: hp(0.3),
+    marginTop: 2,
   },
-  bannerDots: { flexDirection: "row", gap: wp(1.5), marginTop: hp(1) },
+  bannerDots: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: hp(1),
+    gap: wp(1),
+  },
   bannerDot: {
-    width: wp(1.8),
-    height: hp(0.4),
-    borderRadius: hp(0.2),
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    width: wp(2),
+    height: hp(1),
+    borderRadius: hp(0.5),
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
-  bannerDotActive: { backgroundColor: "#fff" },
+  bannerDotActive: {
+    backgroundColor: "#5929d4",
+  },
 
   // Section
-  section: { marginBottom: hp(1) },
+  section: {
+    marginTop: hp(1),
+  },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: hp(1.5),
+    marginBottom: hp(2),
   },
-  sectionTitle: { fontSize: fontScale(18), color: "white", fontWeight: "700" },
+  sectionTitle: {
+    color: "white",
+    fontSize: fontScale(16),
+    fontWeight: "bold",
+  },
   viewAllButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: wp(0.8),
-    backgroundColor: "#4e4e4e4a",
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.7),
-    borderRadius: hp(1.5),
+    gap: 4,
   },
-  viewAllText: { fontSize: fontScale(11), color: "#eaeaea", fontWeight: "500" },
-
-  // Horizontal Games List
-  horizontalGamesList: { gap: wp(3), paddingVertical: hp(0.5) },
-  featuredBonusCard: { width: wp(48), overflow: "hidden", borderRadius: wp(3) },
-  featuredBonusImage: { width: "100%" },
-  featuredBonusTitle: {
-    fontSize: fontScale(15),
-    color: "white",
-    fontWeight: "700",
-    marginBottom: hp(0.3),
+  viewAllText: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: fontScale(12),
   },
-  smallGameCard: { 
-    width: wp(38), 
-    overflow: "hidden", 
-    borderRadius: wp(3),
-    height: wp(38) / 0.8, // Maintain same aspect ratio (3.2/4 = 0.8)
+  horizontalGamesList: {
+    paddingRight: wp(4),
+    gap: wp(3),
   },
-  smallGameImage: { width: "100%" },
-  smallGameTitle: {
-    fontSize: fontScale(13),
-    color: "white",
-    fontWeight: "600",
+  featuredBonusCard: {
+    width: wp(42),
+    height: wp(42),
   },
-
-  // Card Gradient & Rating
-  cardGradient: { flex: 1, justifyContent: "flex-end", padding: wp(2.5) },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(0.5),
-    marginTop: hp(0.3),
-  },
-  ratingText: { fontSize: fontScale(12), color: "#FFD700", fontWeight: "600" },
-  ratingTextSmall: {
-    fontSize: fontScale(10),
-    color: "#FFD700",
-    fontWeight: "600",
+  featuredBonusImage: {
+    width: "100%",
+    height: "100%",
   },
   bonusBadge: {
     position: "absolute",
-    top: hp(1),
-    right: wp(2.5),
+    top: wp(2),
+    left: wp(2),
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.5),
+    borderRadius: wp(2),
     flexDirection: "row",
     alignItems: "center",
-    gap: wp(0.5),
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    paddingHorizontal: wp(2),
-    paddingVertical: hp(0.4),
-    borderRadius: hp(1),
+    gap: 4,
   },
   bonusBadgeText: {
+    color: "#FFD700",
+    fontSize: fontScale(10),
+    fontWeight: "600",
+  },
+  featuredBonusTitle: {
+    color: "white",
+    fontSize: fontScale(14),
+    fontWeight: "bold",
+  },
+  smallGameCard: {
+    width: wp(42),
+    height: wp(42),
+  },
+  smallGameImage: {
+    width: "100%",
+    height: "100%",
+  },
+  smallGameTitle: {
+    color: "white",
+    fontSize: fontScale(11),
+    fontWeight: "600",
+  },
+  cardGradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "40%",
+    justifyContent: "flex-end",
+    padding: wp(2),
+    borderBottomLeftRadius: wp(3),
+    borderBottomRightRadius: wp(3),
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  ratingText: {
+    color: "#FFD700",
+    fontSize: fontScale(10),
+    fontWeight: "600",
+  },
+  ratingTextSmall: {
     color: "#FFD700",
     fontSize: fontScale(9),
     fontWeight: "600",
   },
 
-  // Categories
-  categoriesContent: { gap: wp(2), marginTop: hp(1.5), paddingRight: wp(4) },
-  categoryItem: {
-    paddingHorizontal: wp(3.5),
-    paddingVertical: hp(0.8),
-    backgroundColor: "rgba(37, 37, 37, 0.8)",
-    borderRadius: hp(2),
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-  categoryItemActive: {
-    backgroundColor: "rgb(59, 132, 226)",
-    borderColor: "rgb(59, 132, 226)",
-  },
-  categoryText: { color: "white", fontSize: fontScale(11), fontWeight: "500" },
-  categoryTextActive: { fontWeight: "600" },
-
   // Games Grid
   gamesGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: wp(3),
-    marginTop: hp(2),
     justifyContent: "space-between",
+    marginTop: hp(2),
   },
-  gridGameCard: { width: "47.5%", overflow: "hidden", borderRadius: wp(3) },
-  gridGameImage: { width: "100%" },
-  gridGameTitle: { fontSize: fontScale(13), color: "white", fontWeight: "600" },
+  gridGameCard: {
+    width: wp(29),
+    height: hp(18),
+    marginBottom: hp(2),
+  },
+  gridGameImage: {
+    width: "100%",
+    height: "100%",
+  },
+  gridGameTitle: {
+    color: "white",
+    fontSize: fontScale(12),
+    fontWeight: "bold",
+  },
   gridGameCategory: {
+    color: "rgba(255, 255, 255, 0.6)",
     fontSize: fontScale(10),
-    color: "#a0a0a0",
-    marginTop: hp(0.2),
+    marginTop: 2,
   },
 });

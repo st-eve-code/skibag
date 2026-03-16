@@ -1,16 +1,16 @@
 import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
-  ImageBackground,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ImageBackground,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -21,19 +21,8 @@ const languages = [
 ];
 
 export default function LanguageSelection() {
-  const router = useRouter();
   const { t, setLanguage, language } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Set initial language from context
-  useEffect(() => {
-    setSelectedLanguage(language);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [language]);
+  const [selectedLanguage, setSelectedLanguage] = useState(language || "en");
 
   const handleLanguageSelect = (code: string) => {
     setSelectedLanguage(code);
@@ -42,30 +31,15 @@ export default function LanguageSelection() {
   const handleContinue = () => {
     // Save the selected language
     setLanguage(selectedLanguage);
-    router.back();
+    // Navigate to onboarding
+    router.replace("/(onboardScreen)");
   };
 
   // Get current language name from translation
-  const getCurrentLanguageName = () => {
-    const lang = languages.find((l) => l.code === selectedLanguage);
+  const getCurrentLanguageName = (code: string) => {
+    const lang = languages.find((l) => l.code === code);
     return lang ? t(lang.name) : "English";
   };
-
-  if (isLoading) {
-    return (
-      <ImageBackground
-        source={require("@/assets/images/bg3.jpg")}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <View style={styles.overlay}>
-          <SafeAreaView style={styles.container}>
-            <Text style={styles.loadingText}>Loading...</Text>
-          </SafeAreaView>
-        </View>
-      </ImageBackground>
-    );
-  }
 
   return (
     <ImageBackground
@@ -73,7 +47,6 @@ export default function LanguageSelection() {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      <Stack screenOptions={{ headerShown: false }} />
       <StatusBar
         barStyle="light-content"
         translucent
@@ -82,37 +55,19 @@ export default function LanguageSelection() {
 
       <View style={styles.overlay}>
         <SafeAreaView style={styles.container} edges={["top"]}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t("select_language")}</Text>
-            <View style={{ width: wp(10) }} />
-          </View>
-
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Current Selection Display */}
-            <View style={styles.currentSelection}>
-              <Text style={styles.currentSelectionLabel}>
-                {t("current_language")}
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>{t("select_language")}</Text>
+              <Text style={styles.subtitle}>
+                Choose your preferred language
               </Text>
-              <View style={styles.currentSelectionBox}>
-                <Text style={styles.currentFlag}>
-                  {languages.find((l) => l.code === selectedLanguage)?.flag}
-                </Text>
-                <Text style={styles.currentLanguageName}>
-                  {getCurrentLanguageName()}
-                </Text>
-              </View>
             </View>
 
+            {/* Language List */}
             <View style={styles.languageList}>
               {languages.map((lang) => (
                 <TouchableOpacity
@@ -131,7 +86,7 @@ export default function LanguageSelection() {
                   {selectedLanguage === lang.code && (
                     <Ionicons
                       name="checkmark-circle"
-                      size={fontScale(24)}
+                      size={fontScale(28)}
                       color="#4fc3f7"
                     />
                   )}
@@ -139,11 +94,20 @@ export default function LanguageSelection() {
               ))}
             </View>
 
+            {/* Continue Button */}
             <TouchableOpacity
               style={styles.continueButton}
               onPress={handleContinue}
             >
               <Text style={styles.continueButtonText}>{t("continue")}</Text>
+            </TouchableOpacity>
+
+            {/* Skip Option */}
+            <TouchableOpacity
+              style={styles.skipButton}
+              onPress={() => router.replace("/(onboardScreen)")}
+            >
+              <Text style={styles.skipButtonText}>{t("skip")}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>
@@ -160,60 +124,35 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(12, 12, 12, 0.75)",
+    backgroundColor: "rgba(12, 12, 12, 0.85)",
   },
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: wp(4.5),
-    paddingVertical: hp(2.5),
-  },
-  backButton: {
-    backgroundColor: "rgba(78, 78, 78, 0.4)",
-    padding: wp(2.5),
-    borderRadius: wp(3),
-  },
-  headerTitle: {
-    fontSize: fontScale(20),
-    color: "#ffffff",
-    fontWeight: "600",
-  },
   scrollContent: {
-    paddingHorizontal: wp(4.5),
+    paddingHorizontal: wp(6),
+    paddingTop: hp(10),
     paddingBottom: hp(4),
   },
-  currentSelection: {
-    marginBottom: hp(3),
+  header: {
+    alignItems: "center",
+    marginBottom: hp(6),
   },
-  currentSelectionLabel: {
+  title: {
+    fontSize: fontScale(28),
+    color: "#ffffff",
+    fontWeight: "700",
+    marginBottom: hp(1),
+    textAlign: "center",
+  },
+  subtitle: {
     fontSize: fontScale(14),
     color: "#9e9e9e",
-    marginBottom: hp(1),
-  },
-  currentSelectionBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(59, 132, 226, 0.2)",
-    borderWidth: 1,
-    borderColor: "#3b48b9",
-    borderRadius: wp(3),
-    padding: wp(3),
-  },
-  currentFlag: {
-    fontSize: fontScale(24),
-    marginRight: wp(2),
-  },
-  currentLanguageName: {
-    fontSize: fontScale(16),
-    color: "#ffffff",
-    fontWeight: "600",
+    textAlign: "center",
   },
   languageList: {
-    gap: hp(1.5),
+    gap: hp(2),
+    marginBottom: hp(6),
   },
   languageItem: {
     flexDirection: "row",
@@ -221,43 +160,46 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(42, 42, 42, 0.5)",
     borderRadius: wp(4),
-    padding: wp(4),
+    padding: wp(5),
     borderWidth: 2,
     borderColor: "transparent",
   },
   languageItemSelected: {
-    borderColor: "rgba(79, 195, 247, 0.6)",
+    borderColor: "rgba(79, 195, 247, 0.8)",
     backgroundColor: "rgba(79, 195, 247, 0.15)",
   },
   languageLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: wp(3),
+    gap: wp(4),
   },
   flag: {
-    fontSize: fontScale(28),
+    fontSize: fontScale(36),
   },
   languageName: {
-    fontSize: fontScale(16),
+    fontSize: fontScale(18),
     color: "#ffffff",
-    fontWeight: "500",
+    fontWeight: "600",
   },
   continueButton: {
-    backgroundColor: "rgba(59, 132, 226, 0.8)",
-    paddingVertical: hp(1.8),
+    backgroundColor: "#3b84c9",
+    paddingVertical: hp(2),
     borderRadius: wp(3),
     alignItems: "center",
-    marginTop: hp(4),
+    marginBottom: hp(2),
   },
   continueButtonText: {
     fontSize: fontScale(16),
     color: "#ffffff",
     fontWeight: "600",
   },
-  loadingText: {
-    color: "#ffffff",
-    fontSize: fontScale(18),
-    textAlign: "center",
-    marginTop: hp(40),
+  skipButton: {
+    paddingVertical: hp(1.5),
+    alignItems: "center",
+  },
+  skipButtonText: {
+    fontSize: fontScale(14),
+    color: "#9e9e9e",
+    fontWeight: "500",
   },
 });

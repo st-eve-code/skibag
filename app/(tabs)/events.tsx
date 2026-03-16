@@ -1,3 +1,4 @@
+import { useTranslation } from "@/lib/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { useUser } from "@/lib/userContext";
 import { Ionicons } from "@expo/vector-icons";
@@ -120,6 +121,24 @@ const matchHistory = [
 export default function Events() {
   const router = useRouter();
   const { userData } = useUser();
+  const { t } = useTranslation();
+
+  // Helper function to get rank badge image
+  const getRankBadge = (rank: string) => {
+    switch (rank.toLowerCase()) {
+      case "legend":
+        return require("@/assets/ranks/legend.png");
+      case "pro":
+        return require("@/assets/ranks/pro.png");
+      case "advanced":
+        return require("@/assets/ranks/advanced.png");
+      case "intermediate":
+        return require("@/assets/ranks/inter.png");
+      case "beginner":
+      default:
+        return require("@/assets/ranks/beginner.png");
+    }
+  };
 
   const handleTournamentPress = (tournamentId: number) => {
     router.push(`/tournament/${tournamentId}`);
@@ -144,7 +163,7 @@ export default function Events() {
             contentContainerStyle={styles.scrollContent}
           >
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Player stats</Text>
+              <Text style={styles.headerTitle}>{t("Events")}</Text>
               <TouchableOpacity
                 style={styles.leaderboardBtn}
                 onPress={() => router.push("/leaderboard")}
@@ -154,36 +173,47 @@ export default function Events() {
                   style={styles.leaderboardBackground}
                   imageStyle={styles.leaderboardImageStyle}
                 >
-                  <Text style={styles.leaderboardText}>Leaderboard</Text>
+                  <Text style={styles.leaderboardText}>{t("leaderboard")}</Text>
                 </ImageBackground>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.playerStatsSection}>
+            {/* <View style={styles.playerStatsSection}>
               <View style={styles.playerImageContainer}>
-                <Image
-                  source={require("@/assets/badges/cover.png")}
-                  style={styles.coverImage}
-                />
-                <Image
-                  source={require("@/assets/badges/child.png")}
-                  style={styles.characterImage}
-                />
+                {userData.avatarUri ? (
+                  <Image
+                    source={{ uri: userData.avatarUri }}
+                    style={styles.avatarImage}
+                  />
+                ) : (
+                  <>
+                    <Image
+                      source={require("@/assets/badges/cover.png")}
+                      style={styles.coverImage}
+                    />
+                    <Image
+                      source={require("@/assets/badges/child.png")}
+                      style={styles.characterImage}
+                    />
+                  </>
+                )}
               </View>
 
               <View style={styles.playerInfo}>
-                <Text style={styles.playerRank}>#0023</Text>
+                <Text style={styles.playerRank}>
+                  #{userData.score.toString().padStart(4, "0")}
+                </Text>
                 <View style={styles.playerNameRow}>
-                  <Text style={styles.playerName}>John Doe</Text>
+                  <Text style={styles.playerName}>
+                    {userData.username || "Player"}
+                  </Text>
                   <Image
-                    source={require("@/assets/ranks/beginner.png")}
+                    source={getRankBadge(userData.rank)}
                     style={styles.rankBadge}
                   />
-                  <Text style={styles.playerScore}>13</Text>
+                  <Text style={styles.playerScore}>{userData.score}</Text>
                 </View>
-                <Text style={styles.playerBio}>
-                  Extremely confident and skillfull in every game played so far
-                </Text>
+                <Text style={styles.playerBio}>{t("player_bio")}</Text>
                 <View style={styles.badgesRow}>
                   <Image
                     source={require("@/assets/badges/flame.png")}
@@ -203,10 +233,10 @@ export default function Events() {
                   <Text style={styles.statsDraw}> 1 Draws</Text>
                 </Text>
               </View>
-            </View>
+            </View> */}
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Live Tournaments</Text>
+              <Text style={styles.sectionTitle}>{t("live_tournaments")}</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -269,7 +299,7 @@ export default function Events() {
                           </View>
                         </View>
                         <View style={styles.tournamentEntry}>
-                          <Text style={styles.entryLabel}>Entry:</Text>
+                          <Text style={styles.entryLabel}>{t("entry")}</Text>
                           <Text style={styles.entryFee}>
                             {tournament.entry}
                           </Text>
@@ -283,12 +313,14 @@ export default function Events() {
 
             <View style={styles.section}>
               <View style={styles.historyHeader}>
-                <Text style={styles.sectionTitle}>Match History</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("match_history_title")}
+                </Text>
                 <TouchableOpacity
                   style={styles.viewAllButton}
                   onPress={() => router.push("/match-history")}
                 >
-                  <Text style={styles.viewAllText}>View all</Text>
+                  <Text style={styles.viewAllText}>{t("view_all")}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -309,7 +341,7 @@ export default function Events() {
                     </View>
                     <View style={styles.matchInfo}>
                       <Text style={styles.opponentName}>
-                        vs {match.opponent}
+                        {t("vs")} {match.opponent}
                       </Text>
                       <Text style={styles.matchGame}>{match.game}</Text>
                     </View>
@@ -335,7 +367,11 @@ export default function Events() {
                               : styles.drawText,
                         ]}
                       >
-                        {match.result}
+                        {match.result === "Win"
+                          ? t("win")
+                          : match.result === "Loss"
+                            ? t("loss")
+                            : t("draw")}
                       </Text>
                     </View>
                     <Text style={styles.matchScore}>{match.score}</Text>
@@ -373,7 +409,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: hp(2.5),
+    paddingVertical: hp(3.5),
   },
   headerTitle: {
     fontSize: fontScale(20),
@@ -420,7 +456,7 @@ const styles = StyleSheet.create({
     width: wp(75),
     height: hp(42),
     position: "relative",
-    marginLeft: -wp(20),
+    marginLeft: -wp(25),
     shadowColor: "rgb(153, 0, 255)",
     shadowOpacity: 1,
     shadowRadius: 8,
@@ -433,9 +469,17 @@ const styles = StyleSheet.create({
     top: hp(18),
     right: wp(2.5),
   },
+  avatarImage: {
+    width: wp(65),
+    height: hp(32),
+    position: "absolute",
+    top: hp(18),
+    right: wp(2.5),
+    borderRadius: wp(32),
+  },
   playerInfo: {
     marginTop: -hp(26),
-    marginLeft: -wp(17),
+    marginLeft: -wp(8),
   },
   playerRank: {
     color: "#fff",

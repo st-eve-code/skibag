@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from "@/lib/authContext";
+import { I18nProvider } from "@/lib/I18nContext";
 import { initializeNotifications } from "@/lib/notificationService";
 import { UserProvider } from "@/lib/userContext";
 import { Stack, router } from "expo-router";
@@ -39,6 +40,8 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="all-games" />
+      <Stack.Screen name="language" />
+      <Stack.Screen name="language-selection" />
       <Stack.Screen name="notifications" />
       <Stack.Screen name="transactions" />
       <Stack.Screen name="game/[id]" />
@@ -47,16 +50,19 @@ function RootNavigator() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="splashscreen" />
       <Stack.Screen name="(passkey)" />
+      
     </Stack>
   );
 }
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <UserProvider>
-        <RootNavigator />
-      </UserProvider>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <UserProvider>
+          <RootNavigator />
+        </UserProvider>
+      </AuthProvider>
+    </I18nProvider>
   );
 }
