@@ -1,19 +1,19 @@
-import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Alert,
-  ImageBackground,
-  StatusBar,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { fontScale, hp, wp } from '@/lib/responsive';
+import { getUserPointsAndCoins, playRoulette, recordRouletteWin } from '@/lib/services/firestoreService';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { hp, wp, fontScale } from '@/lib/responsive';
-import { playRoulette, recordRouletteWin, getUserPointsAndCoins } from '@/lib/firestoreService';
+import React, { useRef, useState } from 'react';
+import {
+    Alert,
+    Animated,
+    ImageBackground,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ROULETTE_SEGMENTS = [
   { label: '0', multiplier: 0, color: '#22c55e' },

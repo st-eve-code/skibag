@@ -1,13 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
-import { supabase } from "./supabase";
-import { getCurrentUser } from "./supabaseAuthService";
+import { supabase } from "../services/supabase";
+import { getCurrentUser } from "../services/supabaseAuthService";
 
 // Storage key for user data
 const USER_DATA_STORAGE_KEY = "@skibag_user_data";

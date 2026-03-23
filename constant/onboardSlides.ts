@@ -9,9 +9,9 @@ type Slide = {
 const Slides: Slide[] = [
   {
     id: "1",
-    titleKey: "onboarding_welcome_title",
-    descriptionKey: "onboarding_welcome_desc",
-    backgroundImage: require("@/assets/images/mufa.jpeg"),
+    titleKey: "Good At Gaming ?",
+    descriptionKey: "[18+] gambling involves financial risk, play at your own risk.",
+    backgroundImage: require("@/assets/onboarding/onboard1.jpg"),
     gradient: [
       "rgba(0, 0, 0, 0.04)",
       "rgba(0, 0, 0, 0.69)",
@@ -21,9 +21,9 @@ const Slides: Slide[] = [
   },
   {
     id: "2",
-    titleKey: "onboarding_battles_title",
-    descriptionKey: "onboarding_battles_desc",
-    backgroundImage: require("@/assets/images/modern.jpeg"),
+    titleKey: " Willing To Put Your Money On The Line ?",
+    descriptionKey: "[18+] gambling involves financial risk, play at your own risk.",
+    backgroundImage: require("@/assets/onboarding/onboard2.png"),
     gradient: [
       "rgba(55, 80, 83, 0.13)",
       "rgba(18, 49, 53, 0.75)",
@@ -33,9 +33,9 @@ const Slides: Slide[] = [
   },
   {
     id: "3",
-    titleKey: "onboarding_rewards_title",
-    descriptionKey: "onboarding_rewards_desc",
-    backgroundImage: require("@/assets/images/race.jpeg"),
+    titleKey: "Bet With Real PLayers And Earn Rewards While Gaming !",
+    descriptionKey: "[18+] gambling involves financial risk, play at your own risk.",
+    backgroundImage: require("@/assets/onboarding/onboard3.png"),
     gradient: [
       "rgba(215, 110, 48, 0.06)",
       "rgba(27, 2, 48, 0.39)",
@@ -45,9 +45,9 @@ const Slides: Slide[] = [
   },
   {
     id: "4",
-    titleKey: "onboarding_ready_title",
-    descriptionKey: "onboarding_ready_desc",
-    backgroundImage: require("../assets/images/mobile.jpeg"),
+    titleKey: "Ready To Get Started ?",
+    descriptionKey: "[18+] gambling involves financial risk, play at your own risk.",
+    backgroundImage: require("../assets/onboarding/onboard4.png"),
     gradient: [
       "rgba(85, 163, 98, 0.07)",
       "rgba(8, 55, 61, 0.57)",

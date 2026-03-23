@@ -1,19 +1,19 @@
-import { useTranslation } from "@/lib/I18nContext";
+import MatchCard from "@/app/components/MatchCard";
+import { useTranslation } from "@/lib/context/I18nContext";
+import { useUser } from "@/lib/context/userContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
-import { useUser } from "@/lib/userContext";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Image,
-  ImageBackground,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ImageBackground,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -325,59 +325,14 @@ export default function Events() {
               </View>
 
               {matchHistory.map((match) => (
-                <View key={match.id} style={styles.matchCard}>
-                  <View style={styles.matchLeft}>
-                    <View
-                      style={[
-                        styles.avatarCircle,
-                        match.result === "Win"
-                          ? styles.winAvatar
-                          : match.result === "Loss"
-                            ? styles.lossAvatar
-                            : styles.drawAvatar,
-                      ]}
-                    >
-                      <Text style={styles.avatarText}>{match.avatar}</Text>
-                    </View>
-                    <View style={styles.matchInfo}>
-                      <Text style={styles.opponentName}>
-                        {t("vs")} {match.opponent}
-                      </Text>
-                      <Text style={styles.matchGame}>{match.game}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.matchRight}>
-                    <View
-                      style={[
-                        styles.resultBadge,
-                        match.result === "Win"
-                          ? styles.winBadge
-                          : match.result === "Loss"
-                            ? styles.lossBadge
-                            : styles.drawBadge,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.resultText,
-                          match.result === "Win"
-                            ? styles.winText
-                            : match.result === "Loss"
-                              ? styles.lossText
-                              : styles.drawText,
-                        ]}
-                      >
-                        {match.result === "Win"
-                          ? t("win")
-                          : match.result === "Loss"
-                            ? t("loss")
-                            : t("draw")}
-                      </Text>
-                    </View>
-                    <Text style={styles.matchScore}>{match.score}</Text>
-                    <Text style={styles.matchDate}>{match.date}</Text>
-                  </View>
-                </View>
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  vsLabel={t("vs")}
+                  winLabel={t("win")}
+                  lossLabel={t("loss")}
+                  drawLabel={t("draw")}
+                />
               ))}
             </View>
 

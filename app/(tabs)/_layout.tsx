@@ -181,15 +181,15 @@
 // });
 
 import { theme } from "@/constant/theme";
-import { UserProvider } from "@/lib/userContext";
+import { UserProvider } from "@/lib/context/userContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import {
-  ImageBackground,
-  StyleSheet,
-  Pressable,
-  View,
+    ImageBackground,
+    Pressable,
+    StyleSheet,
+    View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 

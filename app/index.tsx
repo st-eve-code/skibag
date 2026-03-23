@@ -1,15 +1,6 @@
-import { View, Text } from 'react-native'
-import React, { useEffect } from 'react'
-import { Redirect } from 'expo-router'
-import * as ExpoSplashScreen from 'expo-splash-screen'
+import { Redirect } from "expo-router";
 
+// Entry point — go straight to splash screen which handles auth routing
 export default function Index() {
-  useEffect(() => {
-    // Hide the native splash screen immediately
-    ExpoSplashScreen.hideAsync();
-  }, []);
-
-  return (
-    <Redirect href="/splashscreen" />
-  );
+  return <Redirect href="/splashscreen" />;
 }
