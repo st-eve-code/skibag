@@ -1,19 +1,20 @@
+import GameCard from "@/app/components/GameCard";
 import { Games } from "@/constant/games";
-import { useTranslation } from "@/lib/I18nContext";
+import { useTranslation } from "@/lib/context/I18nContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Dimensions,
-  ImageBackground,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    ImageBackground,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -61,8 +62,9 @@ export default function GamesTab() {
           game.category.toLowerCase().includes(selectedCategory.toLowerCase()),
         );
 
-  const handleGameClick = (game: any) => {
-    setSelectedGame(game);
+  const handleGameClick = (gameId: string) => {
+    const game = Games.find((g) => g.id === gameId);
+    if (game) setSelectedGame(game);
   };
 
   const navigateToGame = (gameId: string) => {
@@ -174,43 +176,13 @@ export default function GamesTab() {
             {/* Games Grid */}
             <View style={styles.gamesGrid}>
               {filteredGames.map((game) => (
-                <TouchableOpacity
+                <GameCard
                   key={game.id}
-                  style={styles.gridGameCard}
-                  onPress={() => handleGameClick(game)}
-                >
-                  <ImageBackground
-                    source={game.image}
-                    style={styles.gridGameImage}
-                    imageStyle={{ borderRadius: 12 }}
-                  >
-                    <LinearGradient
-                      colors={["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.8)"]}
-                      style={styles.gridGameGradient}
-                    >
-                      <Text style={styles.gridGameTitle} numberOfLines={1}>
-                        {game.name}
-                      </Text>
-                      <Text style={styles.gridGameCategory} numberOfLines={1}>
-                        {game.category}
-                      </Text>
-                    </LinearGradient>
-                  </ImageBackground>
-
-                  {/* Selected indicator */}
-                  {selectedGame.id === game.id && (
-                    <View style={styles.selectedOverlay}>
-                      <View style={styles.selectedBorder} />
-                      <View style={styles.selectedIndicator}>
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={20}
-                          color="#3a6fe9"
-                        />
-                      </View>
-                    </View>
-                  )}
-                </TouchableOpacity>
+                  game={game}
+                  onPress={handleGameClick}
+                  variant="grid"
+                  isSelected={selectedGame.id === game.id}
+                />
               ))}
             </View>
 

@@ -1,26 +1,28 @@
+import GameCard from "@/app/components/GameCard";
+import NotificationBell from "@/app/components/NotificationBell";
 import { Games } from "@/constant/games";
-import { useTranslation } from "@/lib/I18nContext";
+import { useTranslation } from "@/lib/context/I18nContext";
+import { useUser } from "@/lib/context/userContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/services/supabase";
 import {
-  checkAndUpdateStreak,
-  getCurrentUser,
-} from "@/lib/supabaseAuthService";
-import { useUser } from "@/lib/userContext";
+    checkAndUpdateStreak,
+    getCurrentUser,
+} from "@/lib/services/supabaseAuthService";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  ImageBackground,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
+    ActivityIndicator,
+    ImageBackground,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -273,36 +275,15 @@ export default function Index() {
                 <Text style={styles.balanceText}>{userData?.score || 0}</Text>
               </View>
               <View style={styles.headerRight}>
-                <TouchableOpacity onPress={() => router.push("/notifications")}>
-                  <Ionicons
-                    name="notifications"
-                    size={fontScale(22)}
-                    color="#fff"
-                  />
-                  {unreadCount > 0 && (
-                    <View style={styles.notificationBadge}>
-                      <Text style={styles.notificationText}>
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
+                <NotificationBell
+                  unreadCount={unreadCount}
+                  onPress={() => router.push("/notifications")}
+                />
                 <TouchableOpacity
-                  style={{
-                    flexDirection: "row",
-                    gap: 4,
-                    alignItems: "center",
-                    marginRight: 8,
-                  }}
+                  style={{ flexDirection: "row", gap: 4, alignItems: "center", marginRight: 8 }}
                 >
-                  <Ionicons
-                    name="flame"
-                    size={fontScale(22)}
-                    color="#ff6969da"
-                  />
-                  <Text
-                    style={{ color: "white", fontSize: 14, fontWeight: "500" }}
-                  >
+                  <Ionicons name="flame" size={fontScale(22)} color="#ff6969da" />
+                  <Text style={{ color: "white", fontSize: 14, fontWeight: "500" }}>
                     {userData?.day_streak || 0}
                   </Text>
                 </TouchableOpacity>
@@ -438,80 +419,21 @@ export default function Index() {
                 >
                   {/* Featured Bonus Card - Larger */}
                   {bonusGames.length > 0 && (
-                    <TouchableOpacity
-                      style={styles.featuredBonusCard}
-                      onPress={() => navigateToGame(bonusGames[0].id)}
-                    >
-                      <ImageBackground
-                        source={bonusGames[0].image}
-                        resizeMode="cover"
-                        style={styles.featuredBonusImage}
-                        imageStyle={{ borderRadius: wp(3) }}
-                      >
-                        {/*bonus badge */}
-                        <View style={styles.bonusBadge}>
-                          <Ionicons
-                            name="gift"
-                            size={fontScale(10)}
-                            color="#FFD700"
-                          />
-                          <Text style={styles.bonusBadgeText}>Bonus</Text>
-                        </View>
-                        <LinearGradient
-                          colors={["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.9)"]}
-                          style={styles.cardGradient}
-                        >
-                          <Text style={styles.featuredBonusTitle}>
-                            {bonusGames[0].name}
-                          </Text>
-                          <View style={styles.ratingContainer}>
-                            <Ionicons
-                              name="star"
-                              size={fontScale(12)}
-                              color="#FFD700"
-                            />
-                            <Text style={styles.ratingText}>
-                              {bonusGames[0].rating}
-                            </Text>
-                          </View>
-                        </LinearGradient>
-                      </ImageBackground>
-                    </TouchableOpacity>
+                    <GameCard
+                      game={bonusGames[0]}
+                      onPress={navigateToGame}
+                      variant="featured"
+                    />
                   )}
 
                   {/* Other Bonus Cards */}
                   {bonusGames.slice(1, 7).map((game) => (
-                    <TouchableOpacity
+                    <GameCard
                       key={game.id}
-                      style={styles.smallGameCard}
-                      onPress={() => navigateToGame(game.id)}
-                    >
-                      <ImageBackground
-                        source={game.image}
-                        resizeMode="cover"
-                        style={styles.smallGameImage}
-                        imageStyle={{ borderRadius: wp(3) }}
-                      >
-                        <LinearGradient
-                          colors={["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.8)"]}
-                          style={styles.cardGradient}
-                        >
-                          <Text style={styles.smallGameTitle} numberOfLines={1}>
-                            {game.name}
-                          </Text>
-                          <View style={styles.ratingContainer}>
-                            <Ionicons
-                              name="star"
-                              size={fontScale(10)}
-                              color="#FFD700"
-                            />
-                            <Text style={styles.ratingTextSmall}>
-                              {game.rating}
-                            </Text>
-                          </View>
-                        </LinearGradient>
-                      </ImageBackground>
-                    </TouchableOpacity>
+                      game={game}
+                      onPress={navigateToGame}
+                      variant="small"
+                    />
                   ))}
                 </ScrollView>
               </View>
@@ -531,36 +453,12 @@ export default function Index() {
                 {/* Games Grid */}
                 <View style={styles.gamesGrid}>
                   {filteredGames.map((game) => (
-                    <TouchableOpacity
+                    <GameCard
                       key={game.id}
-                      style={styles.gridGameCard}
-                      onPress={() => navigateToGame(game.id)}
-                    >
-                      <ImageBackground
-                        source={game.image}
-                        resizeMode="cover"
-                        style={[
-                          styles.gridGameImage,
-                          { aspectRatio: cardAspectRatio },
-                        ]}
-                        imageStyle={{ borderRadius: wp(3) }}
-                      >
-                        <LinearGradient
-                          colors={["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.85)"]}
-                          style={styles.cardGradient}
-                        >
-                          <Text style={styles.gridGameTitle} numberOfLines={1}>
-                            {game.name}
-                          </Text>
-                          <Text
-                            style={styles.gridGameCategory}
-                            numberOfLines={1}
-                          >
-                            {game.category}
-                          </Text>
-                        </LinearGradient>
-                      </ImageBackground>
-                    </TouchableOpacity>
+                      game={game}
+                      onPress={navigateToGame}
+                      variant="grid"
+                    />
                   ))}
                 </View>
 

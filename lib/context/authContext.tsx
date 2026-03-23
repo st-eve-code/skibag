@@ -1,35 +1,32 @@
+import { configureGoogle } from "@/lib/context/authService";
 import { Session, User } from "@supabase/supabase-js";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "./supabase";
+import { supabase } from "../services/supabase";
 
-type SupabaseAuthContextType = {
-  session: Session | null;
+type AuthContextType = {
   user: User | null;
+  session: Session | null;
   loading: boolean;
 };
 
-const SupabaseAuthContext = createContext<SupabaseAuthContextType>({
-  session: null,
+const AuthContext = createContext<AuthContextType>({
   user: null,
+  session: null,
   loading: true,
 });
 
-export const SupabaseAuthProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
+    configureGoogle(); // no-op stub — kept for API compatibility
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
     });
 
-    // Listen for auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
@@ -43,12 +40,12 @@ export const SupabaseAuthProvider = ({
   }, []);
 
   return (
-    <SupabaseAuthContext.Provider
-      value={{ session, user: session?.user ?? null, loading }}
+    <AuthContext.Provider
+      value={{ user: session?.user ?? null, session, loading }}
     >
       {children}
-    </SupabaseAuthContext.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export const useSupabaseAuth = () => useContext(SupabaseAuthContext);
+export const useAuth = () => useContext(AuthContext);

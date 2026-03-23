@@ -1,15 +1,15 @@
+import BackButton from "@/app/components/BackButton";
+import ScreenBackground from "@/app/components/ScreenBackground";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  ImageBackground,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -73,31 +73,15 @@ export default function Notifications() {
   };
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/bg3.jpg")}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Notifications</Text>
-            <TouchableOpacity style={styles.clearButton}>
-              <Text style={styles.clearText}>Clear all</Text>
-            </TouchableOpacity>
-          </View>
+    <ScreenBackground overlayOpacity={0.85}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <BackButton onPress={() => router.back()} style={styles.backButtonStyle} />
+          <Text style={styles.headerTitle}>Notifications</Text>
+          <TouchableOpacity style={styles.clearButton}>
+            <Text style={styles.clearText}>Clear all</Text>
+          </TouchableOpacity>
+        </View>
 
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -146,24 +130,12 @@ export default function Notifications() {
             <View style={{ height: hp(5) }} />
           </ScrollView>
         </SafeAreaView>
-      </View>
-    </ImageBackground>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(12, 12, 12, 0.85)",
-  },
-  safeArea: {
-    flex: 1,
-  },
+  safeArea: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -171,10 +143,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
   },
-  backButton: {
+  backButtonStyle: {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: wp(2.5),
-    borderRadius: wp(3),
   },
   headerTitle: {
     fontSize: fontScale(20),

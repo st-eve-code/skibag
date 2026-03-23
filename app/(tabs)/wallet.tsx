@@ -1,20 +1,22 @@
-import { useTranslation } from "@/lib/I18nContext";
+import NotificationBell from "@/app/components/NotificationBell";
+import TransactionCard from "@/app/components/TransactionCard";
+import { useTranslation } from "@/lib/context/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Clipboard,
-  Image,
-  ImageBackground,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Clipboard,
+    Image,
+    ImageBackground,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -172,14 +174,7 @@ export default function Wallet() {
               style={styles.notificationButton}
               onPress={() => router.push("/notifications")}
             >
-              <Ionicons
-                name="notifications"
-                size={fontScale(24)}
-                color="#fff"
-              />
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationText}>3</Text>
-              </View>
+              <NotificationBell unreadCount={3} onPress={() => router.push("/notifications")} />
             </TouchableOpacity>
           </View>
 
@@ -519,76 +514,7 @@ export default function Wallet() {
               </View>
 
               {transactions.map((transaction) => (
-                <TouchableOpacity
-                  key={transaction.id}
-                  style={styles.transactionCard}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.transactionLeft}>
-                    <View
-                      style={[
-                        styles.transactionIcon,
-                        {
-                          backgroundColor:
-                            getTransactionColor(transaction.type) + "20",
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={getTransactionIcon(transaction.type) as any}
-                        size={fontScale(20)}
-                        color={getTransactionColor(transaction.type)}
-                      />
-                    </View>
-                    <View style={styles.transactionInfo}>
-                      <Text style={styles.transactionGame}>
-                        {transaction.game}
-                      </Text>
-                      <Text style={styles.transactionDate}>
-                        {transaction.date}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.transactionRight}>
-                    <Text
-                      style={[
-                        styles.transactionAmount,
-                        {
-                          color: transaction.amount > 0 ? "#22c55e" : "#ef4444",
-                        },
-                      ]}
-                    >
-                      {transaction.amount > 0 ? "+" : ""}
-                      {transaction.amount} XAF
-                    </Text>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        {
-                          backgroundColor:
-                            transaction.status === "completed"
-                              ? "#22c55e20"
-                              : "#f59e0b20",
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.statusText,
-                          {
-                            color:
-                              transaction.status === "completed"
-                                ? "#22c55e"
-                                : "#f59e0b",
-                          },
-                        ]}
-                      >
-                        {transaction.status}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                <TransactionCard key={transaction.id} transaction={transaction} />
               ))}
             </View>
 

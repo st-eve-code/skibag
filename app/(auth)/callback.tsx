@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
-import { useUser } from "@/lib/userContext";
+import { useUser } from "@/lib/context/userContext";
+import { supabase } from "@/lib/services/supabase";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";

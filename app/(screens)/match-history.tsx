@@ -1,16 +1,16 @@
-import { useTranslation } from "@/lib/I18nContext";
+import BackButton from "@/app/components/BackButton";
+import MatchCard from "@/app/components/MatchCard";
+import ScreenBackground from "@/app/components/ScreenBackground";
+import { useTranslation } from "@/lib/context/I18nContext";
 import { fontScale, hp, wp } from "@/lib/responsive";
-import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  ImageBackground,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -174,91 +174,25 @@ export default function MatchHistory() {
   );
 
   const renderMatchCard = (match: MatchHistoryItem) => (
-    <View key={match.id} style={styles.matchCard}>
-      <View style={styles.matchLeft}>
-        <View
-          style={[
-            styles.avatarCircle,
-            match.result === "Win"
-              ? styles.winAvatar
-              : match.result === "Loss"
-                ? styles.lossAvatar
-                : styles.drawAvatar,
-          ]}
-        >
-          <Text style={styles.avatarText}>{match.avatar}</Text>
-        </View>
-        <View style={styles.matchInfo}>
-          <Text style={styles.opponentName}>
-            {match.type === "tournament" && match.tournamentName
-              ? match.tournamentName
-              : `${t("vs")} ${match.opponent}`}
-          </Text>
-          <Text style={styles.matchGame}>{match.game}</Text>
-        </View>
-      </View>
-      <View style={styles.matchRight}>
-        <View
-          style={[
-            styles.resultBadge,
-            match.result === "Win"
-              ? styles.winBadge
-              : match.result === "Loss"
-                ? styles.lossBadge
-                : styles.drawBadge,
-          ]}
-        >
-          <Text
-            style={[
-              styles.resultText,
-              match.result === "Win"
-                ? styles.winText
-                : match.result === "Loss"
-                  ? styles.lossText
-                  : styles.drawText,
-            ]}
-          >
-            {match.result === "Win"
-              ? t("win")
-              : match.result === "Loss"
-                ? t("loss")
-                : t("draw")}
-          </Text>
-        </View>
-        <Text style={styles.matchScore}>
-          {match.type === "tournament" ? match.score : match.score}
-        </Text>
-        <Text style={styles.matchDate}>{match.date}</Text>
-      </View>
-    </View>
+    <MatchCard
+      key={match.id}
+      match={match}
+      vsLabel={t("vs")}
+      winLabel={t("win")}
+      lossLabel={t("loss")}
+      drawLabel={t("draw")}
+    />
   );
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/bg3.jpg")}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
+    <ScreenBackground>
       <Stack screenOptions={{ headerShown: false }} />
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.container} edges={["top"]}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={fontScale(24)} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t("match_history_title")}</Text>
-            <View style={{ width: wp(10) }} />
-          </View>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.header}>
+          <BackButton onPress={() => router.back()} />
+          <Text style={styles.headerTitle}>{t("match_history_title")}</Text>
+          <View style={{ width: wp(10) }} />
+        </View>
 
           {/* Category Toggle */}
           <View style={styles.categoryContainer}>
@@ -302,32 +236,18 @@ export default function MatchHistory() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Match History List */}
             <View style={styles.historySection}>
               {currentMatches.map(renderMatchCard)}
             </View>
-
             <View style={{ height: hp(4) }} />
           </ScrollView>
         </SafeAreaView>
-      </View>
-    </ImageBackground>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(12, 12, 12, 0.75)",
-  },
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -335,16 +255,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4.5),
     paddingVertical: hp(2.5),
   },
-  backButton: {
-    backgroundColor: "rgba(78, 78, 78, 0.4)",
-    padding: wp(2.5),
-    borderRadius: wp(3),
-  },
-  headerTitle: {
-    fontSize: fontScale(20),
-    color: "#ffffff",
-    fontWeight: "600",
-  },
+  headerTitle: { fontSize: fontScale(20), color: "#ffffff", fontWeight: "600" },
   categoryContainer: {
     flexDirection: "row",
     paddingHorizontal: wp(4.5),
@@ -358,108 +269,9 @@ const styles = StyleSheet.create({
     borderRadius: hp(2.5),
     alignItems: "center",
   },
-  categoryButtonActive: {
-    backgroundColor: "rgba(59, 132, 226, 0.8)",
-  },
-  categoryText: {
-    fontSize: fontScale(13),
-    color: "#a0a0a0",
-    fontWeight: "500",
-  },
-  categoryTextActive: {
-    color: "#ffffff",
-  },
-  scrollContent: {
-    paddingHorizontal: wp(4.5),
-  },
-  historySection: {
-    marginBottom: hp(2),
-  },
-  matchCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "rgba(42, 42, 42, 0.5)",
-    borderRadius: wp(4),
-    padding: wp(3.5),
-    marginBottom: hp(1.5),
-  },
-  matchLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: wp(3),
-  },
-  avatarCircle: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(6),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  winAvatar: {
-    backgroundColor: "rgba(74, 222, 128, 0.2)",
-  },
-  lossAvatar: {
-    backgroundColor: "rgba(248, 113, 113, 0.2)",
-  },
-  drawAvatar: {
-    backgroundColor: "rgba(251, 191, 36, 0.2)",
-  },
-  avatarText: {
-    color: "#fff",
-    fontSize: fontScale(18),
-    fontWeight: "700",
-  },
-  matchInfo: {
-    gap: hp(0.5),
-  },
-  opponentName: {
-    color: "#fff",
-    fontSize: fontScale(15),
-    fontWeight: "600",
-  },
-  matchGame: {
-    color: "#a0a0a0",
-    fontSize: fontScale(12),
-  },
-  matchRight: {
-    alignItems: "flex-end",
-    gap: hp(0.5),
-  },
-  resultBadge: {
-    paddingHorizontal: wp(3.5),
-    paddingVertical: hp(0.5),
-    borderRadius: hp(1.5),
-  },
-  winBadge: {
-    backgroundColor: "rgba(74, 222, 128, 0.2)",
-  },
-  lossBadge: {
-    backgroundColor: "rgba(248, 113, 113, 0.2)",
-  },
-  drawBadge: {
-    backgroundColor: "rgba(251, 191, 36, 0.2)",
-  },
-  resultText: {
-    fontSize: fontScale(12),
-    fontWeight: "700",
-  },
-  winText: {
-    color: "#4ade80",
-  },
-  lossText: {
-    color: "#f87171",
-  },
-  drawText: {
-    color: "#fbbf24",
-  },
-  matchScore: {
-    color: "#e0e0e0",
-    fontSize: fontScale(14),
-    fontWeight: "600",
-  },
-  matchDate: {
-    color: "#707070",
-    fontSize: fontScale(11),
-  },
+  categoryButtonActive: { backgroundColor: "rgba(59, 132, 226, 0.8)" },
+  categoryText: { fontSize: fontScale(13), color: "#a0a0a0", fontWeight: "500" },
+  categoryTextActive: { color: "#ffffff" },
+  scrollContent: { paddingHorizontal: wp(4.5) },
+  historySection: { marginBottom: hp(2) },
 });

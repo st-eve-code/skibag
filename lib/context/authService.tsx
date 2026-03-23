@@ -1,5 +1,5 @@
 import * as WebBrowser from "expo-web-browser";
-import { supabase } from "./supabase";
+import { supabase } from "../services/supabase";
 
 /**
  * Configure Google Sign-In (no-op stub — kept for API compatibility).
